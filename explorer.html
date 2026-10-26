@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0f1624">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Grid Explorer · Merge, Split, Move, Add, Remove</title>
+<style>
+  :root{color-scheme:dark;--bg:#0f1624;--panel:#172236;--panel2:#1f2e47;--ink:#e8edf6;--mute:#93a1ba;--line:#2a3b58;
+    --amber:#f4ca72;--teal:#5fd4c4;--ok:#6ee7a0;--bad:#ff7b7b;
+    --st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);--sl:env(safe-area-inset-left,0px);--sr:env(safe-area-inset-right,0px)}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none;background:var(--bg);color:var(--ink);
+    font:15px/1.4 system-ui,-apple-system,Segoe UI,sans-serif;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+  body{position:fixed;inset:0}
+  #cv{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block}
+  button{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:12px;min-height:44px;padding:0 12px;cursor:pointer;touch-action:manipulation}
+  button:active{background:var(--panel2)}
+  button[aria-pressed=true]{background:#2a3d5f;border-color:var(--amber);color:var(--amber)}
+  button:disabled{opacity:.3}
+  [hidden]{display:none !important}
+  #top{position:absolute;left:0;right:0;top:0;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;
+    padding:calc(var(--st) + 8px) calc(var(--sr) + 10px) 6px calc(var(--sl) + 10px);pointer-events:none}
+  #top>*{pointer-events:auto}
+  #title{font-size:12px;color:var(--mute);background:rgba(23,34,54,.85);border-radius:14px;padding:5px 12px;pointer-events:none;line-height:1.35;min-width:0}
+  #title>*{display:block}
+  #title b{color:var(--ink);font-weight:600;font-size:13px}
+  #status{white-space:nowrap;flex:none;border-radius:22px;font-size:14px;font-weight:600;padding:0 14px;background:rgba(23,34,54,.9);color:var(--ok);border-color:rgba(110,231,160,.45)}
+  #toast{position:absolute;left:50%;top:calc(var(--st) + 64px);transform:translateX(-50%);background:rgba(15,22,36,.94);border:1px solid var(--line);
+    border-radius:14px;padding:9px 14px;font-size:14px;opacity:0;transition:opacity .3s;pointer-events:none;text-align:center;width:max-content;max-width:calc(100vw - 24px)}
+  #toast.on{opacity:1} #toast.bad{border-color:var(--bad);color:#ffd2d2}
+  #snap{position:absolute;left:50%;bottom:calc(var(--sb) + 112px);transform:translateX(-50%);background:rgba(15,22,36,.95);border:1.5px solid var(--amber);border-radius:14px;padding:9px 14px;font-size:13.5px;line-height:1.35;opacity:0;transition:opacity .15s;pointer-events:none;width:max-content;max-width:calc(100vw - 24px);color:var(--ink)}
+  #snap.on{opacity:1} #snap.bad{border-color:var(--bad);color:#ffd2d2}
+  #dock{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(to top,rgba(15,22,36,.97) 72%,rgba(15,22,36,0));
+    padding:14px calc(var(--sr) + 10px) calc(var(--sb) + 10px) calc(var(--sl) + 10px);display:flex;flex-direction:column;gap:8px}
+  #hint{font-size:12px;color:var(--mute);text-align:center;min-height:16px}
+  .row{display:flex;gap:8px} .row button{flex:1 1 auto;min-width:0;padding:0 8px;font-size:14px;white-space:nowrap}
+  .row button.ic{flex:0 0 46px;font-size:19px;padding:0}
+  #addbar{background:rgba(23,34,54,.97);border:1.5px solid var(--amber);border-radius:14px;padding:9px 12px 10px}
+  #addbar.bad{border-color:var(--bad)} #addbar.bad #add-text{color:#ffd2d2}
+  #add-text{font-size:13.5px;line-height:1.35;min-height:36px}
+  #addbar .row{margin-top:8px} #addbar .row button{min-height:40px} #add-ok{border-color:var(--amber);color:var(--amber);font-weight:600}
+  .sheet{position:absolute;left:0;right:0;bottom:0;max-height:80%;overflow:auto;-webkit-overflow-scrolling:touch;background:var(--panel);border-top:1px solid var(--line);
+    border-radius:18px 18px 0 0;padding:14px calc(var(--sr) + 16px) calc(var(--sb) + 18px) calc(var(--sl) + 16px);box-shadow:0 -12px 32px rgba(0,0,0,.5);-webkit-user-select:text;user-select:text}
+  .sheet h2{font-size:16px;margin:4px 0 8px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .sheet h3{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin:16px 0 6px}
+  .sheet .close{min-height:36px}
+  .kv{font-size:14px;margin:4px 0} .kv span{color:var(--mute)}
+  .shape{display:flex;align-items:center;gap:10px;padding:6px 0;border-top:1px solid var(--line);font-size:14px}
+  .shape i{width:22px;height:16px;border-radius:3px;flex:none;border:1px solid rgba(255,255,255,.35)}
+  .shape small{color:var(--mute)}
+  .list button{display:block;width:100%;text-align:left;margin:6px 0;font-size:15px}
+  .list button small{display:block;color:var(--mute);font-size:12px}
+  .chk{display:flex;gap:8px;font-size:13px;padding:3px 0} .chk b{color:var(--ok)} .chk b.n{color:var(--bad)} .chk span b{color:var(--ink)} .chk small{color:var(--mute)}
+  .name{font-size:17px;font-weight:650;margin:2px 0 6px;color:var(--amber)} .verdict{font-weight:600}
+  .sum{display:flex;gap:10px;align-items:baseline;padding:7px 0;border-top:1px solid var(--line);font-size:14px} .sum .k{flex:0 0 96px;color:var(--mute)} .sum .chk{padding:0;font-size:14px}
+  #pop{position:absolute;z-index:20;width:min(290px,calc(100vw - 20px));background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px 12px 12px;box-shadow:0 12px 30px rgba(0,0,0,.55);-webkit-user-select:none;user-select:none}
+  #pop-title{font-weight:650;font-size:14px;margin:2px 0 4px} #pop-text{font-size:12.5px;line-height:1.35;color:var(--mute);margin-bottom:4px}
+  #pop-btns button{display:block;width:100%;text-align:left;margin:7px 0 0;font-size:14px;min-height:44px;padding:6px 12px} #pop-btns button small{display:block;color:var(--mute);font-size:11.5px;line-height:1.3;margin-top:1px}
+  #pop-btns button:disabled{opacity:.55} #pop-btns #pop-cancel,#pop-btns #pop-ok{text-align:center;min-height:38px}
+  details{margin-top:12px;border-top:1px solid var(--line);padding-top:8px} summary{cursor:pointer;color:var(--teal);font-size:14px;padding:6px 0;list-style-position:inside}
+  a{color:var(--teal)}
+</style>
+</head>
+<body>
+<canvas id="cv"></canvas>
+<div id="top">
+  <div id="title"><b id="name">Grid Explorer</b><span id="sub">arrangement</span><span id="blk">repeat block</span></div>
+  <button id="status">✓ valid</button>
+</div>
+<div id="toast"></div>
+<div id="snap"></div>
+<div id="pop" hidden><div id="pop-title"></div><div id="pop-text"></div><div id="pop-btns"></div></div>
+<div id="dock">
+  <div id="hint">＋ Edge: split a shape · tap an edge: add a point or merge · drag a dot (onto a neighbour to merge) · tap a dot to remove · two fingers: zoom, pan</div>
+  <div id="addbar" hidden><div id="add-text"></div><div class="row"><button id="add-cancel">Cancel</button><button id="add-ok" disabled>Add this edge</button></div></div>
+  <div class="row">
+    <button id="undo" class="ic" aria-label="Undo">↶</button><button id="redo" class="ic" aria-label="Redo">↷</button><button id="addedge" aria-pressed="false" aria-label="Add an edge">＋ Edge</button><button id="block" aria-pressed="false">Block</button><button id="info">Info</button><button id="more" class="ic" aria-label="More">⋯</button>
+  </div>
+</div>
+<div id="sheet-info" class="sheet" hidden><h2>This grid <button class="close" data-close="sheet-info">Close</button></h2><div id="info-body"></div></div>
+<div id="sheet-more" class="sheet list" hidden><h2>More <button class="close" data-close="sheet-more">Close</button></h2>
+  <button id="m-new">New grid…<small>start again from triangles, with a repeat block of your choice</small></button>
+  <button id="m-bigger">Bigger repeat block…<small>keep your shapes; future merges repeat less often</small></button>
+  <button id="m-zoom">Zoom out<small>see more of the grid</small></button>
+  <button id="m-lab">Grid Lab<small>the M1 diagnostic environment (separate page)</small></button>
+</div>
+<div id="sheet-blocks" class="sheet list" hidden><h2><span id="blocks-title">New grid</span> <button class="close" data-close="sheet-blocks">Close</button></h2><p class="kv"><span id="blocks-note"></span></p><div id="blocks-list"></div></div>
+<!-- does nothing unless ?agent=… (test driving from the Mac) or ?perf=1 -->
+<script src="grid.js"></script>
+<script src="topo.js"></script>
+<script src="classify.js"></script>
+<script src="merge.js"></script>
+<script src="move.js"></script>
+<script src="explorer.js"></script>
+</body>
+</html>

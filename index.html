@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0f1624">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Tessellation</title>
+<meta name="description" content="Develop a figure on a polygon, illustrate it and repeat it into a tessellation.">
+<meta name="apple-mobile-web-app-title" content="Tessellation">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<style>
+  :root{color-scheme:dark;--bg:#0f1624;--panel:#172236;--panel2:#1f2e47;--ink:#e8edf6;--mute:#93a1ba;--line:#2a3b58;
+    --amber:#f4ca72;--teal:#5fd4c4;--pink:#f08fc0;--violet:#a99cff;--ok:#6ee7a0;--bad:#ff7b7b;
+    --st:env(safe-area-inset-top,0px);--sb:env(safe-area-inset-bottom,0px);--sl:env(safe-area-inset-left,0px);--sr:env(safe-area-inset-right,0px)}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none;background:var(--bg);color:var(--ink);
+    font:15px/1.4 system-ui,-apple-system,Segoe UI,sans-serif;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+  body{position:fixed;inset:0}
+  #app{position:fixed;inset:0;height:100vh;height:100dvh}
+  canvas#work{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block}
+  button{font:inherit;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:12px;min-height:44px;padding:0 14px;cursor:pointer;touch-action:manipulation}
+  button:active{background:var(--panel2)}
+  button[aria-pressed=true]{background:#2a3d5f;border-color:var(--amber);color:var(--amber)}
+  button:disabled{opacity:.3}
+
+  [hidden]{display:none !important}   /* the hidden attribute must beat display:flex on strips and segments */
+  /* top bar */
+  #top{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;justify-content:space-between;
+    padding:calc(var(--st) + 6px) calc(var(--sr) + 8px) 6px calc(var(--sl) + 8px);pointer-events:none}
+  #top>*{pointer-events:auto}
+  .round{width:44px;padding:0;border-radius:22px;font-size:24px;line-height:1;background:rgba(23,34,54,.78);backdrop-filter:blur(6px)}
+  #title{font-size:13px;color:var(--mute);background:rgba(23,34,54,.6);border-radius:14px;padding:4px 12px;pointer-events:none}
+
+  /* undo / redo */
+  .fab{position:absolute;bottom:calc(var(--dock-h,120px) + 8px);width:48px;height:48px;min-height:48px;padding:0;border-radius:24px;font-size:22px;
+    background:rgba(23,34,54,.55);border-color:transparent;color:#c9d3e6}
+  #undo{left:calc(var(--sl) + 10px)} #redo{right:calc(var(--sr) + 10px)}
+
+  /* dock */
+  #dock{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(to top,rgba(15,22,36,.97) 70%,rgba(15,22,36,.0));
+    padding:10px calc(var(--sr) + 10px) calc(var(--sb) + 10px) calc(var(--sl) + 10px);display:flex;flex-direction:column;gap:8px}
+  .strip{display:none;align-items:center;justify-content:center;gap:8px;min-height:48px}
+  .strip.on{display:flex}
+  .seg{display:flex;gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .seg button{border:0;border-radius:0;min-height:44px;background:var(--panel)}
+  .seg button+button{border-left:1px solid var(--line)}
+  #modes{display:flex;gap:10px}
+  #modes button{flex:1;min-height:56px;font-size:14px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;padding:0 4px}
+  input[type=range]{flex:1;min-width:80px;max-width:180px;height:44px;accent-color:var(--amber)}
+  input[type=color]{width:44px;height:44px;padding:0;border:2px solid var(--line);border-radius:22px;background:none;overflow:hidden}
+  #toast{position:absolute;left:50%;top:calc(var(--st) + 62px);transform:translateX(-50%);background:rgba(15,22,36,.9);border:1px solid var(--line);
+    border-radius:14px;padding:8px 14px;font-size:13px;color:var(--ink);opacity:0;transition:opacity .3s;pointer-events:none;white-space:normal;text-align:center;max-width:calc(100vw - 24px)}
+  #toast.on{opacity:1}
+
+  .strip{flex-wrap:wrap;row-gap:6px}
+  .seg.tools button{padding:0 9px;font-size:14px;min-width:0;flex:1}
+  .seg.tools{flex:1 1 100%}
+  .patterns{flex:1 1 100%} .patterns button{flex:1;padding:0 6px;font-size:13px}
+  .row2{display:flex;align-items:center;gap:10px;flex:1 1 100%}
+  .sizebox{display:flex;align-items:center;gap:10px;flex:1}
+  .sizebox input[type=range]{max-width:none;flex:1}
+  .prev{width:44px;height:44px;border-radius:12px;background:#f7f1e3;display:flex;align-items:center;justify-content:center;flex:none}
+  .prev i{display:block;border-radius:50%;background:#1d1b18}
+  .colbtn{width:48px;min-height:44px;padding:0;border-radius:22px;display:flex;align-items:center;justify-content:center;flex:none}
+  .colbtn i{display:block;width:28px;height:28px;border-radius:50%;border:2px solid #fff;background:#1d1b18}
+  .palette{display:flex;flex-wrap:wrap;gap:10px;align-items:center;background:rgba(23,34,54,.96);border:1px solid var(--line);border-radius:16px;padding:10px}
+  .palette[hidden]{display:none}
+  .swatches{display:flex;flex-wrap:wrap;gap:8px;flex:1}
+  .sw{width:36px;height:36px;min-height:36px;border-radius:50%;padding:0;border:2px solid var(--line)}
+  .sw[aria-pressed=true]{border-color:#fff;box-shadow:0 0 0 2px var(--amber)}
+  .custom{display:flex;align-items:center;gap:8px;color:var(--mute);font-size:13px}
+  .custom input[type=color]{width:36px;height:36px}
+  /* menu */
+  #menu{position:absolute;right:calc(var(--sr) + 8px);top:calc(var(--st) + 58px);width:min(300px,calc(100vw - 24px));background:var(--panel);border:1px solid var(--line);
+    border-radius:16px;padding:6px;box-shadow:0 12px 32px rgba(0,0,0,.5);z-index:5}
+  #menu[hidden],#entry[hidden],#lab[hidden],#about[hidden],#scrim[hidden]{display:none}
+  #menu .item{display:flex;width:100%;justify-content:space-between;align-items:center;text-align:left;background:none;border:0;border-radius:10px;min-height:46px}
+  #menu .item:active{background:var(--panel2)}
+  #menu hr{border:0;border-top:1px solid var(--line);margin:4px 0}
+  #menu .label{color:var(--mute);font-size:12px;padding:6px 14px 2px}
+  #menu .seg{margin:2px 10px 8px}
+  #scrim{position:absolute;inset:0;z-index:4}
+  /* CR1: the menu scrolls when it is taller than the screen (landscape; the two project items) */
+  #menu{max-height:calc(100% - var(--st) - 66px - var(--sb));overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+  #menu .label.keep{padding:2px 14px 6px;line-height:1.35} #menu .label.warn{color:#ffd28a}
+
+  /* full-screen overlays */
+  .sheet{position:absolute;inset:0;z-index:10;background:var(--bg);overflow:auto;-webkit-overflow-scrolling:touch;
+    padding:calc(var(--st) + 10px) calc(var(--sr) + 14px) calc(var(--sb) + 20px) calc(var(--sl) + 14px);user-select:text;-webkit-user-select:text}
+  .sheet h1{font-size:22px;margin:8px 0 2px} .sheet h2{font-size:13px;letter-spacing:.06em;text-transform:uppercase;color:var(--mute);margin:18px 0 8px}
+  .sheet .sub{color:var(--mute);margin:0 0 14px}
+  .bar{display:flex;align-items:center;gap:10px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+  .card{display:flex;flex-direction:column;gap:6px;align-items:stretch;text-align:left;height:auto;padding:10px;border-radius:16px;min-height:0}
+  .card svg{width:100%;height:auto;background:#0d1422;border-radius:10px}
+  .card b{font-size:15px} .card span{font-size:12.5px;color:var(--mute);line-height:1.3}
+  .card .tag{display:block;width:max-content;margin:4px 0 0}
+  /* CR1: Continue card, storage notice, Open a project file */
+  .card.resume{flex-direction:row;align-items:center;gap:12px;width:100%;max-width:520px}
+  .card.resume img,.card.resume .nothumb{width:88px;height:88px;border-radius:10px;object-fit:cover;background:#0d1422;flex:none;display:block}
+  .card.resume div{display:flex;flex-direction:column;gap:3px;min-width:0}
+  .sheet .note{color:#ffd28a;font-size:13px;margin:0 0 12px}
+  .openrow{margin-top:18px}
+  #ask #ask-save{margin:2px 0 4px}
+  /* CR2: Save image sheet; the Tessellate outline slider */
+  #exp{position:absolute;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;background:rgba(5,9,16,.62);padding:calc(var(--st) + 10px) calc(var(--sr) + 12px) calc(var(--sb) + 10px) calc(var(--sl) + 12px)}
+  #exp[hidden]{display:none}
+  #exp .box{width:min(440px,100%);max-height:100%;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:16px 16px 12px;box-shadow:0 18px 48px rgba(0,0,0,.6)}
+  #exp h3{margin:0 0 2px;font-size:17px} #exp .mute{color:var(--mute);font-size:13px;margin:0 0 8px}
+  #exp .prevbox{display:flex;align-items:center;justify-content:center;min-height:120px;border-radius:12px;margin:4px 0 10px;
+    background:repeating-conic-gradient(#2a3346 0 25%,#222a3a 0 50%) 0 0/16px 16px}
+  #exp .prevbox img{display:block;max-width:100%;max-height:30vh;object-fit:contain;border-radius:6px}
+  #exp .exrow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:6px 0}
+  #exp .exrow>span{color:var(--mute);font-size:13px} #exp .exrow .seg button{min-height:40px;padding:0 12px}
+  #exp #exp-info{min-height:18px;margin:8px 0 0}
+  #exp .acts{display:flex;gap:10px;justify-content:flex-end;margin-top:12px} #exp .acts .primary{background:var(--amber);color:#1a1200;border-color:transparent;font-weight:700}
+  .sl.outl{flex:1 1 100%;max-width:420px}
+  .tag{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:.08em;color:#1a1200;background:var(--amber);border-radius:6px;padding:1px 6px;margin-left:6px;vertical-align:middle}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:6px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{color:var(--mute);font-weight:600}
+  .pill{display:inline-block;padding:1px 8px;border-radius:99px;font-size:12px;font-weight:600}
+  .ok{background:#12342a;color:var(--ok)} .bad{background:#3b1c1f;color:var(--bad)}
+  .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:8px 0}
+  .scroll{overflow-x:auto}
+  .mute{color:var(--mute)}
+  canvas.lab{width:100%;max-width:520px;aspect-ratio:1/1;background:#0d1422;border-radius:12px;display:block}
+
+  .infl{display:flex;align-items:center;gap:6px;flex:1 1 150px;min-width:0;font-size:12px;color:var(--mute)}
+  .infl input[type=range]{max-width:none;min-width:70px;flex:1}
+  .lockbtn{background:var(--amber);color:#1a1200;border-color:transparent;font-weight:700;flex:none}
+  .poprow.nowrap{flex-wrap:nowrap} .sl.grow{flex:1 1 auto}
+  #strip-shape #ref-btn{min-width:48px;padding:0 10px}
+  .sl{display:flex;flex-direction:column;gap:0;flex:1 1 70px;min-width:0;font-size:10.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--mute)}
+  .sl input[type=range]{width:100%;max-width:none;min-width:0;height:30px}
+  .sl[hidden]{display:none !important}
+  .sl.wide{flex:1 1 100%} .sl.third{flex:1 1 30%} .sl.half{flex:1 1 44%} .poprow.sliders{flex-wrap:nowrap;gap:12px} .pop .small{font-size:10.5px;line-height:1.2}
+  .pop{gap:6px;padding:8px 10px}
+  .prevc{width:44px;height:44px;border-radius:10px;flex:none;border:1px solid var(--line)}
+  .pop{display:flex;flex-direction:column;gap:8px;background:rgba(23,34,54,.97);border:1px solid var(--line);border-radius:16px;padding:10px;position:absolute;left:calc(var(--sl) + 10px);right:calc(var(--sr) + 10px);bottom:100%;margin-bottom:6px;z-index:6;box-shadow:0 8px 24px rgba(0,0,0,.45)}
+  .pop[hidden]{display:none !important}
+  .poprow{display:flex;gap:8px;align-items:center;flex-wrap:wrap} .poprow button{min-height:40px;padding:0 12px;font-size:13px} .poprow b{font-size:14px} .grow{flex:1}
+  .small{font-size:11.5px}
+  .chip{display:inline-flex;align-items:center;gap:8px;min-height:40px;padding:0 12px;border-radius:12px;font-size:13px}
+  .chip .dot{display:inline-block;width:22px;height:22px;border-radius:50%;border:2px solid #fff;background:#f7f1e3}
+  #grp .swatches{max-height:96px;overflow:auto}
+  #grp .poprow:first-child{flex-wrap:nowrap;gap:6px} #grp .poprow:first-child b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #grp .poprow:first-child button{min-height:36px;padding:0 10px;flex:none}
+  #title{max-width:calc(100vw - 150px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #ref-btn.locked{border-color:var(--teal);color:var(--teal)}
+  /* the palette FLOATS above the dock (never makes the dock taller) */
+  #dock{position:absolute}
+  .palette{position:absolute;left:calc(var(--sl) + 10px);right:calc(var(--sr) + 10px);bottom:100%;margin-bottom:6px;z-index:6;box-shadow:0 8px 24px rgba(0,0,0,.45)}
+  @media (orientation:landscape) and (max-height:520px){
+    #dock{flex-direction:row;align-items:flex-end;gap:10px;padding-top:6px}
+    .strip{flex:1;justify-content:flex-start;align-content:flex-end}
+    .seg.tools{flex:1 1 auto;min-width:0} .seg.tools button{padding:0 4px;font-size:12px;min-width:0}
+    .row2{flex:1 1 220px} .patterns{flex:1 1 100%}
+    #modes{width:min(310px,40vw);align-self:flex-end} #modes button{min-height:46px;font-size:11px;padding:0 2px}
+    .palette{left:auto;right:calc(var(--sr) + 10px);max-width:min(560px,calc(100vw - 20px))}
+    .pop{left:auto;right:calc(var(--sr) + 10px);width:min(380px,48vw)}
+    .prevc{display:none}   /* the colour button already shows colour + opacity; frees width for the sliders */
+    .seg.tools button{padding:0 2px !important;font-size:11px !important}
+    .row2{gap:8px} .sl{flex:1 1 90px} .sl input[type=range]{height:26px}
+    .swatches{flex-wrap:nowrap;overflow-x:auto}
+    #top{padding-top:calc(var(--st) + 2px)}
+  }
+  /* ===== v4.3 · SHAPE screen (Direction B): quiet stage navigation at the top, ONE fixed-height floating bar at the bottom ===== */
+  #top>.topside[aria-hidden]{width:44px;flex:none;pointer-events:none}
+  /* v4.4 · stage navigation as ONE compact segmented control (the Compass Repeat principle, in this app's dark language): a quiet common
+     container that keeps it legible over any artwork, three EQUAL fixed segments, and the current stage as a filled, raised segment */
+  .stagenav{display:grid;grid-template-columns:repeat(4,76px);gap:2px;padding:3px;border-radius:12px;background:rgba(12,18,30,.94);box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+  /* v5.0: four stages. The bar is a 3-column grid (spacer | navigation | menu): the navigation is centred whenever there is room and moves
+     left just enough never to sit under ⋮ on a narrow phone */
+  #top{display:grid;grid-template-columns:1fr auto 1fr;align-items:center}
+  #top>.topside[aria-hidden]{width:0 !important} #top>#more{justify-self:end}
+  .stagenav button[aria-disabled=true]{opacity:.35}
+  .stagenav button{position:relative;background:none;border:0;height:32px;min-height:32px;padding:0 4px;border-radius:9px;font-size:13.5px;font-weight:500;letter-spacing:.01em;color:#9ba8bf}
+  .stagenav button::after{content:'';position:absolute;left:-1px;right:-1px;top:-6px;bottom:-6px}
+  .stagenav button[aria-pressed=true]{background:#4a6290;color:#f5f7fb;font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.45)}
+  .stagenav button:active{background:rgba(255,255,255,.08)} .stagenav button[aria-pressed=true]:active{background:#4a6290}
+  .stagenav button{font-size:13px}
+  @media (max-width:389px){ .stagenav{grid-template-columns:repeat(4,70px)} .stagenav button{font-size:12.5px;padding:0 2px} }
+  /* the view centre's lower reference = the Shape bar's FIXED top edge, in every stage (see resize() in app.js) */
+  #frame-ref{position:absolute;left:0;width:1px;height:0;bottom:calc(var(--sb) + 110px);pointer-events:none;visibility:hidden}
+  @media (orientation:landscape) and (max-height:520px){ #frame-ref{bottom:calc(var(--sb) + 66px)} }
+  #more{background:none;border:0;backdrop-filter:none;-webkit-backdrop-filter:none;font-size:22px;color:#c9d3e6;text-shadow:0 1px 3px rgba(0,0,0,.75)}
+  #menu-title{padding:8px 14px 4px}
+  body[data-mode=shape] .fab,body[data-mode=polygon] .fab{display:none}
+  body[data-mode=shape] #dock,body[data-mode=polygon] #dock{background:none;padding:0 calc(var(--sr) + 10px) calc(var(--sb) + 10px) calc(var(--sl) + 10px);pointer-events:none}
+  body[data-mode=shape] #dock>*,body[data-mode=polygon] #dock>*{pointer-events:auto}
+  #strip-shape.on,#strip-polygon.on{display:block}
+  #strip-shape,#strip-polygon{position:relative;height:100px;box-sizing:border-box;padding:6px 10px;border-radius:20px;background:rgba(19,28,45,.94);width:100%;max-width:620px;margin:0 auto}
+  .sb-row1{display:flex;align-items:center;justify-content:space-between;height:44px}
+  .sb-hist{display:flex;width:88px;flex:none}
+  .sb-icon{background:none;border:0;width:44px;min-width:44px;height:44px;min-height:44px;padding:0;border-radius:12px;font-size:22px;color:#c9d3e6}
+  .sb-icon:disabled{opacity:.28}
+  .sb-icon.gone{visibility:hidden}
+  .sb-seg{display:flex;background:rgba(255,255,255,.06);border-radius:12px;padding:3px}
+  .sb-seg button{background:none;border:0;min-height:38px;padding:0 18px;border-radius:9px;font-size:15px;color:#c9d3e6}
+  .sb-seg button[aria-pressed=true]{background:#2a3d5f;color:var(--amber)}
+  .sb-seg.small button{min-height:34px;padding:0 12px;font-size:13.5px}
+  .sb-text{background:none;border:0;width:88px;flex:none;min-height:44px;padding:0 4px;display:flex;align-items:center;justify-content:flex-end;gap:5px;font-size:14px;color:#c9d3e6}
+  #ref-btn.locked{border:0;color:#c9d3e6}
+  .lk{width:12px;height:12px;flex:none}
+  .sb-text .lk{color:#93a1ba}
+  .sb-row2{position:relative;height:40px;margin-top:4px}
+  .sb-row2>.infl,.sb-row2>.sb-sketch{position:absolute;inset:0;display:flex;align-items:center;gap:10px}
+  .sb-row2 .infl span{font-size:12px;color:var(--mute);flex:none}
+  .sb-row2 input[type=range],.sb-op input[type=range]{flex:1;max-width:none;min-width:0;height:40px}
+  .sb-sketch .sizebox{flex:1;gap:10px;min-width:0}
+  .sb-sketch .prev{width:30px;height:30px;border-radius:15px}
+  .sb-ref{position:absolute;inset:6px 10px;display:flex;align-items:center;gap:10px}
+  .sb-op{display:flex;align-items:center;gap:8px;flex:1;min-width:0;font-size:12px;color:var(--mute)}
+  .lockbtn{display:flex;align-items:center;gap:6px;min-height:44px;padding:0 16px;border-radius:14px;background:var(--amber);color:#1a1200;border:0;font-weight:700}
+  .lockbtn .lk{width:13px;height:13px}
+  .refmore{right:auto;width:auto;align-items:stretch;gap:2px;padding:6px}
+  .refmore button{min-height:44px;text-align:left;background:none;border:0;border-radius:10px;padding:0 14px}
+  /* ===== v5.0 · POLYGON bar: same floating material and height as the Shape bar (so the canvas never moves between the two) ===== */
+  .pb-fam{flex:0 1 auto;min-width:0} .pb-fam button{padding:0 8px;font-size:14px}
+  .pb-count{width:56px;flex:none;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;line-height:1.05;color:#c9d3e6;padding-right:4px}
+  .pb-count b{font-size:17px;font-weight:650;letter-spacing:.01em} .pb-count b small{font-size:12px;font-weight:500;color:var(--mute)} .pb-count span{font-size:10.5px;color:var(--mute);letter-spacing:.04em;text-transform:uppercase}
+  .pb-count.full b{color:var(--amber)}
+  .pb-row2{display:flex;align-items:center;gap:10px}
+  .pb-sub{flex:1;min-width:0;display:flex;align-items:center;height:40px}
+  .pb-hint{font-size:12.5px;color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pb-next{flex:none;min-height:38px;height:38px;padding:0 14px;border-radius:12px;border:0;background:#4a6290;color:#f5f7fb;font-size:14px;font-weight:600}
+  .pb-next:disabled{opacity:.3}
+  /* CR3: Polygon › Sketch (a toggle beside Shape ›); the sketch tools move into the bar while it is on */
+  .pb-sk{flex:none;min-height:38px;height:38px;padding:0 12px;border-radius:12px;border:0;background:rgba(255,255,255,.06);color:#c9d3e6;font-size:14px}
+  .pb-sk[aria-pressed=true]{background:#2a3d5f;color:var(--amber)} .pb-sk:disabled{opacity:.3}
+  .pb-sub>.sb-sketch{display:flex;align-items:center;gap:8px;flex:1;min-width:0}
+  #pb-tools .sb-row1>#seg-sketch button{padding:0 16px}
+  #pb-count[hidden]{display:flex !important;visibility:hidden}   /* the quiet count keeps its place, so the bar does not shift when it appears */
+  #menu .item.sub{padding-left:28px;min-height:42px;font-size:14.5px}
+  #node-remove{position:absolute;z-index:3;white-space:nowrap;min-height:36px;height:36px;padding:0 12px;border-radius:18px;border:0;background:#f5f7fb;color:#1a1200;font-size:13.5px;font-weight:600;box-shadow:0 2px 10px rgba(0,0,0,.45);transform:translate(-50%,-100%)}
+  /* a question that needs an answer (returning to Polygon after Shape edits) */
+  #ask{position:absolute;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;background:rgba(5,9,16,.62);padding:20px}
+  #ask[hidden]{display:none}
+  #ask .box{width:min(400px,100%);background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px 18px 14px;box-shadow:0 18px 48px rgba(0,0,0,.6)}
+  #ask h3{margin:0 0 8px;font-size:17px} #ask p{margin:0 0 10px;color:#c9d3e6;font-size:14px;line-height:1.45} #ask p.mute{color:var(--mute);font-size:13px}
+  #ask .acts{display:flex;gap:10px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+  #ask .acts .primary{background:var(--amber);color:#1a1200;border-color:transparent;font-weight:700}
+  @media (orientation:landscape) and (max-height:520px){
+    body[data-mode=shape] #dock,body[data-mode=polygon] #dock{display:block;padding-top:0}
+    #strip-shape,#strip-polygon{height:56px;max-width:760px;padding:6px 8px}
+    #pb-tools{display:flex;align-items:center;height:44px;gap:8px}
+    #strip-polygon .sb-row1,#strip-polygon .pb-row2{display:contents}
+    #strip-polygon .sb-hist{order:1} #strip-polygon .pb-fam{order:2} #strip-polygon .pb-sub{order:3;flex:1;height:44px} #strip-polygon .pb-count{order:4;width:auto}
+    #strip-polygon .pb-sk{order:5} #strip-polygon .pb-next{order:6}
+  }
+  @media (orientation:landscape) and (max-height:520px){
+    #strip-shape{height:56px;max-width:760px;padding:6px 8px}
+    #sb-tools{display:flex;align-items:center;height:44px}
+    .sb-row1{display:contents}
+    .sb-hist{order:1} .sb-main{order:2} .sb-row2{order:3;flex:1;height:44px;margin:0 10px} .sb-text{order:4}
+    .sb-ref{inset:6px 8px}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <canvas id="work" aria-label="Tessellation workspace"></canvas>
+  <div id="frame-ref" aria-hidden="true"></div>
+
+  <header id="top">
+    <span class="topside" aria-hidden="true"></span>
+    <nav id="stagenav" class="stagenav" aria-label="Stage of making">
+      <button id="mode-polygon" aria-pressed="false">Polygon</button><button id="mode-shape" aria-pressed="true">Shape</button><button id="mode-illustrate" aria-pressed="false">Illustrate</button><button id="mode-tess" aria-pressed="false">Tessellate</button>
+    </nav>
+    <button id="more" class="round topside" aria-label="Menu" aria-expanded="false">⋮</button>
+  </header>
+
+  <button id="undo" class="fab" aria-label="Undo" disabled>↶</button>
+  <button id="redo" class="fab" aria-label="Redo" disabled>↷</button>
+  <div id="toast" role="status"></div>
+  <button id="node-remove" hidden>Remove point</button>
+  <div id="exp" hidden role="dialog" aria-modal="true" aria-labelledby="exp-title">
+    <div class="box">
+      <h3 id="exp-title">Save image</h3><p class="mute" id="exp-sub"></p>
+      <div class="prevbox"><img id="exp-prev" alt="Preview of the image"></div>
+      <div class="exrow"><span>Format</span><div class="seg" id="exp-format"><button data-v="png">PNG</button><button data-v="svg">SVG</button></div></div>
+      <div class="exrow" id="exp-res-row"><span>Size</span><div class="seg" id="exp-res"><button data-v="1">1×</button><button data-v="2">2×</button><button data-v="4">4×</button></div></div>
+      <div class="exrow"><span>Background</span><div class="seg" id="exp-bg"><button data-v="current">Current</button><button data-v="transparent">Transparent</button></div></div>
+      <div class="exrow" id="exp-sk-row"><span>Sketch</span><div class="seg" id="exp-sk"><button data-v="on">Show</button><button data-v="off">Hide</button></div></div>
+      <p class="mute" id="exp-info" aria-live="polite"></p>
+      <div class="acts"><button id="exp-cancel">Cancel</button><button id="exp-save" class="primary" disabled>Save image</button></div>
+    </div>
+  </div>
+  <div id="ask" hidden role="dialog" aria-modal="true" aria-labelledby="ask-title">
+    <div class="box"><h3 id="ask-title"></h3><div id="ask-text"></div>
+      <div class="acts"><button id="ask-no">Keep</button><button id="ask-yes" class="primary">Change</button></div></div>
+  </div>
+
+  <footer id="dock">
+    <div id="palette" class="palette" hidden>
+      <div id="swatches" class="swatches"></div>
+    </div>
+
+    <div id="refmore" class="pop refmore" hidden aria-label="Reference image">
+      <button id="ref-replace">Replace image…</button><button id="ref-remove">Remove reference</button>
+    </div>
+    <div id="grp" class="pop" hidden>
+      <div class="poprow"><b id="grp-title">Group</b><span class="grow"></span><button id="grp-hide" aria-pressed="false">Hide</button><button id="grp-reset">Reset</button><button id="grp-close" aria-label="Close">×</button></div>
+      <div class="poprow"><button id="grp-bg" class="chip"><i class="dot"></i>Tile colour</button><button id="grp-fig" class="chip"><i class="dot"></i>Figure colour</button></div>
+      <div id="grp-swatches" class="swatches" hidden></div>
+      <div class="poprow sliders">
+      <label class="sl half"><span>Opacity</span><input id="grp-op" type="range" min="0.1" max="1" step="0.01" value="1"></label>
+      <label class="sl half"><span>Scale</span><input id="grp-sc" type="range" min="0.3" max="1.6" step="0.01" value="1"></label>
+      </div>
+      <div class="mute small">Display only — the tessellation underneath is unchanged.</div>
+    </div>
+    <input id="reffile" type="file" accept="image/*" hidden>
+    <input id="projfile" type="file" accept=".json,application/json" hidden>
+
+    <!-- POLYGON (v5.0): the same floating bar as Shape (same height and place). Row 1: Undo/Redo · the transformation family · the side count.
+         Row 2: the family's secondary choices (or a hint) · continue to Shape. -->
+    <div id="strip-polygon" class="strip" aria-label="Polygon tools">
+      <div id="pb-tools">
+        <div class="sb-row1">
+          <div class="sb-hist"><button id="pb-undo" class="sb-icon" aria-label="Undo" disabled>↶</button><button id="pb-redo" class="sb-icon gone" aria-label="Redo" disabled>↷</button></div>
+          <div class="sb-seg pb-fam" role="group" aria-label="Transformation"><button id="pf-translate" aria-pressed="false">Translate</button><button id="pf-rotate" aria-pressed="false">Rotate</button><button id="pf-glide" aria-pressed="false">Glide</button></div>
+          <div class="pb-count" id="pb-count" aria-live="polite" hidden><b>0<small>/40</small></b><span>points</span></div>
+        </div>
+        <div class="sb-row2 pb-row2">
+          <div class="pb-sub">
+            <span class="pb-hint" id="pb-hint">Choose how the tiles repeat</span>
+            <div class="sb-seg small" id="pb-sec-rotate" role="group" aria-label="Rotation centres" hidden><button data-id="rotation-sq-ac" aria-pressed="false" aria-label="Turn about the bottom-left and top-right corners">↗ corners</button><button data-id="rotation-sq-bd" aria-pressed="false" aria-label="Turn about the top-left and bottom-right corners">↖ corners</button></div>
+            <div class="sb-seg small" id="pb-sec-glide" role="group" aria-label="Glide reflection" hidden><button data-id="glide" aria-pressed="false">One way</button><button data-id="glide-both" aria-pressed="false">Both ways</button></div>
+          </div>
+          <button id="pb-sketch" class="pb-sk" aria-pressed="false" disabled>Sketch</button>
+          <button id="pb-next" class="pb-next" disabled>Shape ›</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- SHAPE: one floating bar of FIXED height. Row 2 holds Point–Wide (Pull) or Pen/Eraser + size (Sketch) in the same box,
+         so switching tools never moves anything. Reference editing swaps the whole bar for  ⋯ | Opacity | Lock. -->
+    <div id="strip-shape" class="strip on" aria-label="Shape tools">
+      <div id="sb-tools">
+        <div class="sb-row1">
+          <div class="sb-hist"><button id="sb-undo" class="sb-icon" aria-label="Undo" disabled>↶</button><button id="sb-redo" class="sb-icon gone" aria-label="Redo" disabled>↷</button></div>
+          <div class="sb-seg sb-main" role="group" aria-label="Shape tool"><button id="st-pull" aria-pressed="true">Pull</button><button id="st-sketch" aria-pressed="false">Sketch</button></div>
+          <button id="ref-btn" class="sb-text" aria-pressed="false" aria-expanded="false" title="Add a reference image">Ref</button>
+        </div>
+        <div class="sb-row2">
+          <label class="infl" id="seg-influence" title="How much of the edge one pull bends"><span>Point</span><input id="infl" type="range" min="0" max="1" step="0.001" value="0.35" aria-label="Influence width, from Point to Wide"><span>Wide</span></label>
+          <div class="sb-sketch" id="sketch-tools" hidden>
+            <div class="sb-seg small" id="seg-sketch" role="group" aria-label="Sketch tool"><button id="sk-pen" aria-pressed="true">Pen</button><button id="sk-eraser" aria-pressed="false">Eraser</button></div>
+            <div class="sizebox" id="box-sketch"><input id="size-sk" type="range" min="0" max="1" step="0.01" value="0.3" aria-label="Sketch size"><span class="prev"><i id="prev-sk"></i></span></div>
+          </div>
+        </div>
+      </div>
+      <div id="refbar" class="sb-ref" hidden aria-label="Reference image">
+        <button id="ref-more" class="sb-icon" aria-label="Replace or remove the reference" aria-expanded="false">⋯</button>
+        <label class="sb-op"><span>Opacity</span><input id="ref-op" type="range" min="0" max="1" step="0.01" value="0.45" aria-label="Reference opacity"></label>
+        <button id="ref-lock" class="lockbtn"><svg class="lk" viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 7V5a3.5 3.5 0 0 1 7 0v2" fill="none" stroke="currentColor" stroke-width="1.6"/><rect x="3" y="7" width="10" height="7.5" rx="1.6" fill="currentColor"/></svg> Lock</button>
+      </div>
+    </div>
+
+    <!-- ILLUSTRATE: pen, eraser, fill, dots, texture -->
+    <div id="strip-illustrate" class="strip">
+      <div class="seg tools" role="group" aria-label="Illustration tool">
+        <button id="t-pen" aria-pressed="true">Pen</button><button id="t-eraser" aria-pressed="false">Eraser</button><button id="t-fill" aria-pressed="false">Fill</button><button id="t-dot" aria-pressed="false">Dots</button><button id="t-texture" aria-pressed="false">Texture</button>
+      </div>
+      <div class="row2">
+        <canvas id="prevc" width="44" height="44" class="prevc" aria-label="Preview"></canvas>
+        <label class="sl" id="sl-size"><span id="lab-size">Size</span><input id="size-il" type="range" min="0" max="1" step="0.01" value="0.3"></label>
+        <label class="sl" id="sl-angle" hidden><span>Angle</span><input id="angle-il" type="range" min="0" max="180" step="1" value="45"></label>
+        <label class="sl" id="sl-opac"><span>Opacity</span><input id="opac-il" type="range" min="0.05" max="1" step="0.01" value="1"></label>
+        <button id="colour-btn" class="colbtn" aria-label="Colour" aria-expanded="false"><i id="colour-dot"></i></button>
+      </div>
+      <div class="seg patterns" id="seg-pattern" role="group" aria-label="Texture pattern" hidden>
+        <button data-p="hatch" aria-pressed="true">Hatch</button><button data-p="cross" aria-pressed="false">Cross</button><button data-p="stipple" aria-pressed="false">Stipple</button><button data-p="scales" aria-pressed="false">Scales</button><button data-p="waves" aria-pressed="false">Waves</button>
+      </div>
+    </div>
+
+    <!-- TESSELLATE: colour treatment -->
+    <div id="strip-tess" class="strip">
+      <div class="seg" role="group" aria-label="Colour treatment">
+        <button id="tr-same" aria-pressed="true">Same</button><button id="tr-alt" aria-pressed="false">Alternate</button><button id="tr-row" aria-pressed="false">Row</button><button id="tr-col" aria-pressed="false">Column</button>
+      </div>
+      <label class="sl outl"><span>Outline</span><input id="outline" type="range" min="0" max="1" step="0.01" value="0.428" aria-label="Outline width"></label>
+    </div>
+
+  </footer>
+
+  <div id="scrim" hidden></div>
+  <div id="menu" hidden role="menu">
+    <div class="label" id="menu-title"></div>
+    <button class="item" id="m-new">New <span class="mute">choose shape…</span></button>
+    <button class="item" id="m-image"><span>Save image…</span><span class="mute">PNG · SVG</span></button>
+    <button class="item" id="m-save"><span>Save project</span><span class="mute">file…</span></button>
+    <button class="item" id="m-open"><span>Open project…</span></button>
+    <div class="label keep" id="m-keep">Kept on this device automatically</div>
+    <hr>
+    <button class="item" id="m-start"><span>Show starting shape</span><span id="m-start-tick" class="mute">off</span></button>
+    <div class="label">Neighbours</div>
+    <div class="seg" role="group" aria-label="Neighbours">
+      <button id="g-off" aria-pressed="false">Off</button><button id="g-ghost" aria-pressed="true">Ghost</button><button id="g-clear" aria-pressed="false">Clear</button>
+    </div>
+    <button class="item" id="m-sketch" hidden><span>Show sketch</span><span id="m-sketch-tick" class="mute">off</span></button>
+    <button class="item" id="m-resetcomp">Reset composition</button>
+    <button class="item" id="m-fit">Fit view</button>
+    <button class="item" id="m-reset">Reset Shape</button>
+    <button class="item" id="m-restore" hidden><span>Restore previous version</span><span class="mute" id="m-restore-sub"></span></button>
+    <hr>
+    <button class="item" id="m-exp"><span>Experimental</span><span class="mute" id="m-exp-tick">›</span></button>
+    <div id="m-exp-list" hidden>
+      <button class="item sub" id="m-exp-grid"><span>Grid Explorer</span><span class="mute">new tab</span></button>
+      <button class="item sub" id="m-exp-regular"><span>Regular Grid Explorer</span><span class="mute">new tab</span></button>
+      <button class="item sub" id="m-exp-rhombus"><span>Rhombus · mirror diamond</span></button>
+    </div>
+    <button class="item" id="m-lab">Geometry Lab <span class="mute">›</span></button>
+    <hr>
+    <button class="item" id="m-about">About</button>
+  </div>
+
+  <section id="entry" class="sheet">
+    <div class="bar"><button id="entry-back" class="round" aria-label="Back" hidden>‹</button><h1 id="entry-title">Choose a starting shape</h1></div>
+    <p class="sub" id="entry-sub">Everything you draw will repeat across the plane.</p>
+    <div id="entry-body"></div>
+  </section>
+
+  <section id="lab" class="sheet" hidden>
+    <div class="bar"><button id="lab-back" class="round" aria-label="Back to workspace">‹</button><h1>Geometry Lab</h1></div>
+    <p class="sub">Development / research inspection. This uses the same geometry engine and the same cell you are working on.</p>
+    <h2>Transformation replay</h2>
+    <canvas id="lab-cell" class="lab" width="520" height="520" aria-label="Replay"></canvas>
+    <h2>Edge pairs (measured from the live matrices)</h2>
+    <div class="scroll"><table id="lab-rels"><thead><tr><th>Pair</th><th>Transformation</th><th>Orientation</th><th>Residual</th><th></th></tr></thead><tbody></tbody></table></div>
+    <div class="row" id="lab-cover"></div>
+    <h2>Self-crossing guard (v5.0, experimental)</h2>
+    <div class="row"><button id="lab-guard" aria-pressed="true">Shape guard: on</button><span class="mute" id="lab-guard-stat" style="font-size:12px"></span></div>
+    <p class="mute" style="font-size:12px">Polygon always prevents edges from crossing. In Shape, the guard stops a pull at the last shape whose outline does not cross itself (the tiling proof below cannot detect a crossing). Switch it off to compare.</p>
+    <h2>Self-test</h2>
+    <div class="row"><button id="lab-selftest">Run self-test (7 constructions × 30 edits)</button></div>
+    <div class="scroll"><table id="lab-self" hidden><thead><tr><th>Construction</th><th>Edits</th><th>Max residual</th><th>Gap %</th><th>Overlap %</th><th>Result</th></tr></thead><tbody></tbody></table></div>
+    <p class="mute" style="font-size:12px">The self-test runs at the baseline influence (0.2) and restores your shape afterwards.</p>
+    <h2>Tiling proof (independent of the app's tile list)</h2>
+    <div class="row"><button id="lab-proof-now">Check this cell, current shape</button><button id="lab-proof-all">All constructions × random edits (Narrow &amp; Wide)</button></div>
+    <div class="scroll"><table id="lab-proof" hidden><thead><tr><th>Case</th><th>Tiles</th><th>Overlap (collisions)</th><th>Edges shared 2× / 1× / &gt;2×</th><th>Vertex angle ≠360°</th><th>Edge mismatch</th><th>Result</th></tr></thead><tbody></tbody></table></div>
+    <p class="mute" style="font-size:12px">Checks: no two tiles on the same spot; every interior edge shared by exactly two tiles (1× = gap, &gt;2× = overlap); angles at every interior vertex total 360°; neighbours' edges coincide; tile count equals the engine's.</p>
+    <h2>SVG boundary (feasibility)</h2>
+    <div class="row"><button id="svg-poly">Polyline path</button><button id="svg-smooth">Smooth (Bézier)</button>
+      <select id="svg-dec" aria-label="Decimals"><option>4</option><option>5</option><option selected>6</option><option>9</option></select><span class="mute">decimals</span></div>
+    <div id="svg-status" class="mute" style="font-size:13px"></div>
+    <div id="svg-preview" style="max-width:260px;background:#0d1422;border-radius:12px;padding:8px"></div>
+    <textarea id="svg-text" rows="5" style="width:100%;background:#0d1422;color:#e8edf6;border:1px solid var(--line);border-radius:10px;font:11px/1.3 ui-monospace,Menlo,monospace;margin-top:8px" readonly></textarea>
+    <h2>Diagnostic tessellation</h2>
+    <canvas id="lab-diag" class="lab" width="620" height="620" aria-label="Diagnostic tessellation"></canvas>
+    <div class="row"><button id="lab-marks" aria-pressed="true">Symmetry marks</button></div>
+  </section>
+
+  <section id="about" class="sheet" hidden>
+    <div class="bar"><button id="about-back" class="round" aria-label="Back">‹</button><h1>About</h1></div>
+    <p><b>Tessellation</b>: develop a figure that repeats across the plane, in four stages.</p>
+    <p><b>Polygon</b> · choose how the tiles repeat, move corners and add points on the sides (up to 40). Every change is copied to the matching side, so the tile always fits its neighbours.<br>
+       <b>Shape</b> · pull the sides into curves; sketch your idea.<br>
+       <b>Illustrate</b> · draw, fill, add dots and textures.<br>
+       <b>Tessellate</b> · see the pattern, colour groups of tiles, set the outline.</p>
+    <p><b>Your work</b> is kept on this device automatically (⋮ menu). <b>Save project</b> makes a file you can keep, move to another device or hand in; <b>Open project…</b> brings it back. <b>Save image…</b> makes a picture (PNG or SVG).</p>
+    <p class="mute">Two fingers move and zoom. Work kept in Safari and in a Home Screen copy of the app are kept separately: use Save project to move work between them. Classroom release v5.4 (CR3).</p>
+  </section>
+</div>
+<script src="engine.js"></script>
+<script src="tiling-check.js"></script>
+<script src="project.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

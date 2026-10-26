@@ -1,0 +1,14 @@
+{
+  "name": "Tessellation",
+  "short_name": "Tessellation",
+  "description": "Develop a figure on a polygon, illustrate it and repeat it into a tessellation.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0f1624",
+  "theme_color": "#0f1624",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
