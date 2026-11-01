@@ -236,6 +236,17 @@
   #pb-tools .sb-row1>#seg-sketch button{padding:0 16px}
   #pb-count[hidden]{display:flex !important;visibility:hidden}   /* the quiet count keeps its place, so the bar does not shift when it appears */
   #menu .item.sub{padding-left:28px;min-height:42px;font-size:14.5px}
+  /* T1: four rules (Slide · Turn · Flip · Mirror), their learning notes (ⓘ), and mirrored drawing in Illustrate */
+  .pb-fam button{padding:0 7px}
+  .pb-info{width:34px;min-width:34px;height:38px;min-height:38px;font-size:18px;color:var(--mute);flex:none}
+  .mirbtn{background:rgba(255,255,255,.06);border:0;color:#c9d3e6} .mirbtn svg{width:26px;height:26px;display:block}
+  .mirbtn[aria-pressed=true]{background:#2a3d5f;color:var(--amber);box-shadow:inset 0 0 0 2px var(--amber)} .mirbtn[hidden]{display:none}
+  #rules .rule{display:flex;gap:14px;align-items:flex-start;margin:0 0 16px} #rules .rule-pic{flex:none;width:112px} #rules .rule-pic svg{width:112px;height:84px;display:block;background:rgba(255,255,255,.03);border-radius:10px}
+  #pb-sec-mirror button{padding:0 9px;white-space:nowrap} #pb-sec-mirror svg{width:20px;height:14px;vertical-align:-2px;margin-right:5px}   /* T2: Mirror's arrangements */
+  #rules .arrange{margin:4px 0 16px;padding:14px 0 0;border-top:1px solid rgba(255,255,255,.12)} #rules .arrange-pics{display:flex;gap:12px;margin:10px 0 0}
+  #rules .arrange figure{margin:0;flex:1;min-width:0} #rules .arrange svg{width:100%;max-width:150px;height:auto;display:block;margin:0 auto;background:rgba(255,255,255,.03);border-radius:10px}
+  #rules .arrange figcaption{font-size:13px;color:#c9d3e6;line-height:1.4;margin-top:6px} #rules .arrange figcaption span{color:var(--mute)} #rules .arrange p.mute{color:var(--mute);font-size:13px;margin-top:10px}
+  #rules h3{margin:2px 0 4px;font-size:17px} #rules h3 span{font-weight:400;color:var(--mute);font-size:14px} #rules p{margin:0;color:#c9d3e6;font-size:14px;line-height:1.45}
   #node-remove{position:absolute;z-index:3;white-space:nowrap;min-height:36px;height:36px;padding:0 12px;border-radius:18px;border:0;background:#f5f7fb;color:#1a1200;font-size:13.5px;font-weight:600;box-shadow:0 2px 10px rgba(0,0,0,.45);transform:translate(-50%,-100%)}
   /* a question that needs an answer (returning to Polygon after Shape edits) */
   #ask{position:absolute;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;background:rgba(5,9,16,.62);padding:20px}
@@ -244,6 +255,18 @@
   #ask h3{margin:0 0 8px;font-size:17px} #ask p{margin:0 0 10px;color:#c9d3e6;font-size:14px;line-height:1.45} #ask p.mute{color:var(--mute);font-size:13px}
   #ask .acts{display:flex;gap:10px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
   #ask .acts .primary{background:var(--amber);color:#1a1200;border-color:transparent;font-weight:700}
+  /* F1a-1 · Two figures: one small floating row above the bar (One figure | Two figures in Polygon; the shares in Shape; Swap in every stage) */
+  #fg-bar{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(var(--dock-h,120px) + 8px);z-index:2;display:flex;align-items:center;gap:8px;pointer-events:none;max-width:calc(100vw - 24px)}
+  #fg-bar[hidden],#fg-bar>[hidden]{display:none}
+  #fg-bar>*{pointer-events:auto;background:rgba(19,28,45,.94);box-shadow:0 2px 10px rgba(0,0,0,.35)}
+  #fg-mode{border-radius:14px} #fg-mode button{white-space:nowrap} #fg-mode button[aria-disabled=true]{opacity:.42}
+  .fg-share{display:flex;align-items:center;height:40px;padding:0 12px;border-radius:14px;font-size:13px;color:#c9d3e6;white-space:nowrap;font-variant-numeric:tabular-nums;letter-spacing:.01em}
+  .fg-work{display:flex;align-items:center;border-radius:14px;padding-left:11px} .fg-work .fg-wl{font-size:12.5px;color:#c9d3e6;margin-right:4px;white-space:nowrap}   /* F1a-2: Working on A | B */
+  .fg-work button{display:flex;align-items:center;justify-content:center;gap:6px;min-width:48px;font-weight:600}
+  .fg-dot{display:inline-block;width:12px;height:12px;border-radius:4px;box-shadow:inset 0 0 0 1px rgba(0,0,0,.35)} .fg-dot.fa{background:#f7f1e3} .fg-dot.fb{background:#cf8a62}
+  #fg-bar.compact .fg-wl{display:none} #fg-bar.compact .fg-work{padding-left:0}
+  @media (orientation:landscape) and (max-height:520px){ #fg-bar>*{height:36px;min-height:36px} #fg-mode button{min-height:30px} }
+  @media (max-width:359px){ #fg-bar{gap:6px} #fg-mode button{padding:0 8px;font-size:12.5px} .fg-work button{min-width:42px} }
   @media (orientation:landscape) and (max-height:520px){
     body[data-mode=shape] #dock,body[data-mode=polygon] #dock{display:block;padding-top:0}
     #strip-shape,#strip-polygon{height:56px;max-width:760px;padding:6px 8px}
@@ -259,6 +282,131 @@
     .sb-hist{order:1} .sb-main{order:2} .sb-row2{order:3;flex:1;height:44px;margin:0 10px} .sb-text{order:4}
     .sb-ref{inset:6px 8px}
   }
+  /* ===== v5.10 · PHASE 1 · starting shape (Tri · Quad · Hex), construction method, sub-method; Undo + Redo together in every stage;
+     a visible ☰ menu with two sub-pages; Fit view as a button. Interface only: the geometry engine and the project format are unchanged. ===== */
+  #top>#more.menubtn{width:44px;height:44px;min-height:44px;padding:0;border-radius:12px;background:#22324d;border:1.5px solid rgba(220,230,248,.62);
+    box-shadow:0 2px 8px rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;backdrop-filter:none;-webkit-backdrop-filter:none;text-shadow:none}
+  #more .ham{display:block;width:20px;height:2.4px;border-radius:2px;background:#fff;box-shadow:0 -6.5px 0 #fff,0 6.5px 0 #fff}
+  #top>#more.menubtn[aria-expanded=true],#top>#more.menubtn:active{background:#2f4466}
+  #toast{z-index:15}                                    /* notes show above the start screen, sheets and menu (Hex's note on the start screen), below questions */
+  #scrim{cursor:pointer}                                  /* iOS Safari only turns a tap into a click on 'clickable' elements: now a tap outside the menu closes it */
+  .legacy{display:none !important}                       /* One figure | Two figures: replaced by the Figure & Ground method (kept for the test suites only) */
+  /* one Undo / Redo pair: same icons, size and place (the panel's top-left) in all four stages; always visible, dimmed when there is nothing to undo */
+  .sb-hist{width:88px;flex:none;display:flex;border-radius:12px;background:rgba(255,255,255,.06)}
+  .sb-hist .sb-icon{color:#e1e7f2;border-radius:0} .sb-hist .sb-icon:first-child{border-radius:12px 0 0 12px} .sb-hist .sb-icon+.sb-icon{border-left:1px solid rgba(255,255,255,.1);border-radius:0 12px 12px 0}
+  .sb-hist .sb-icon:disabled{opacity:.3} .sb-hist .sb-icon:not(:disabled):active{background:rgba(255,255,255,.12)}
+  .sb-icon .ic{width:22px;height:22px;display:block;margin:auto}
+  .ph-row1{display:flex;align-items:center;gap:8px;flex:1 1 100%;min-width:0}
+  .ph-row1 .seg{flex:1;min-width:0} .ph-row1 .seg button{flex:1;min-width:0;padding:0 4px}
+  /* Fit view: a small button over the canvas, just above the panel, at the right */
+  .fitfab{position:absolute;right:calc(var(--sr) + 12px);bottom:calc(var(--dock-h,120px) + 8px);z-index:2;width:44px;height:44px;min-height:44px;padding:0;border-radius:22px;
+    background:rgba(23,34,54,.82);border:1px solid rgba(255,255,255,.16);color:#dfe6f3;display:flex;align-items:center;justify-content:center;box-shadow:0 1px 6px rgba(0,0,0,.4)}
+  .fitfab .ic{width:22px;height:22px}
+  /* the Polygon panel: row 1 Undo/Redo · starting shape · help; row 2 the construction methods (Figure & Ground after a divider); row 3 the sub-method */
+  #strip-polygon{height:auto}
+  .pb-row1{height:40px;gap:6px}
+  .ps-seg{display:flex;gap:2px;padding:2px;border-radius:12px;border:1px solid rgba(255,255,255,.16);flex:none}
+  .ps-seg button{position:relative;display:flex;align-items:center;gap:5px;min-height:34px;height:34px;padding:0 9px;border:0;border-radius:9px;background:none;font-size:13px;color:#c9d3e6}
+  .ps-seg button svg{width:15px;height:14px;flex:none}
+  .ps-seg button[aria-pressed=true]{background:rgba(255,255,255,.13);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35)}
+  .ps-seg button[aria-disabled=true]{opacity:.45}
+  .ps-seg button{min-width:36px;justify-content:center}
+  #fg-bar.compact{left:calc(var(--sl) + 12px);transform:none}           /* Polygon: Figure A / B at the bottom left, clear of the centred tile */
+  #fg-bar.compact .fg-work button{min-width:40px;padding:0 8px}
+  .ps-seg .later-dot{position:absolute;right:3px;top:3px;width:6px;height:6px;border-radius:3px;background:#93a1ba}
+  .pb-methods{display:grid;grid-template-columns:repeat(4,1fr) 1px 1fr;gap:4px;margin-top:4px}
+  .pb-methods button{position:relative;height:52px;min-height:52px;min-width:0;padding:2px 2px 3px;border:0;border-radius:12px;background:rgba(255,255,255,.05);display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:2px;color:#c9d3e6;font-size:11.5px;line-height:1.1;text-align:center}
+  .pb-methods button svg{width:24px;height:22px;flex:none}
+  .pb-methods button[aria-pressed=true]{background:#2a3d5f;color:var(--amber);box-shadow:inset 0 0 0 1.5px rgba(244,202,114,.75)}
+  .pb-methods .pb-div{background:rgba(255,255,255,.22);margin:8px 0}
+  .pb-methods .fgm{background:rgba(207,138,98,.13)} .pb-methods .fgm[aria-pressed=true]{background:#3a3029}
+  .pb-methods button[data-avail=no]{opacity:.36} .pb-methods button[data-avail=no]::after{content:'⊘';position:absolute;right:4px;top:1px;font-size:11px;color:#ff9b9b}
+  .pb-methods button[data-avail=later]{opacity:.45} .pb-methods button[data-avail=later]::after{content:'';position:absolute;right:5px;top:5px;width:6px;height:6px;border-radius:3px;background:#93a1ba}
+  .pb-methods.off{opacity:.35;pointer-events:none}
+  .pb-row2{margin-top:4px}
+  .pb-sub .sb-seg.small button{display:flex;align-items:center;gap:4px;padding:0 8px;font-size:12.5px;white-space:nowrap}
+  .pb-sub svg.mini{width:16px;height:16px;flex:none} #pb-sec-mirror svg.mini.wide{width:36px;height:15px;margin:0;vertical-align:0}
+  #strip-polygon #pb-count[hidden]{display:none !important}                 /* the count (from 30 points) takes the shape labels' room, not a reserved gap */
+  #strip-polygon .pb-count{width:auto} .ps-seg.compact button:not([aria-pressed=true]) span{display:none}
+  .pb-hint{white-space:normal;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+  /* the menu: a short main page and two sub-pages; features of later phases are listed, clearly marked, and do nothing yet */
+  #menu .mpage[hidden]{display:none}
+  #menu .item{min-height:44px}
+  #menu .item.later{min-height:40px;color:#93a1ba} #menu .item .soon{font-size:11.5px;color:#f4ca72;white-space:nowrap}
+  #menu .item.back{justify-content:flex-start;color:#9cc8ff}
+  #menu .label.sec{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:#7f8ca4;padding:10px 14px 2px}
+  #menu #m-version{padding:8px 14px 10px}
+  .card.later{opacity:.55} .card .full{color:#c9d3e6}                        /* start screen: Hex is coming later */
+  @media (max-width:389px){
+    .ps-seg button{padding:0 7px} .ps-seg button:not([aria-pressed=true]) span{display:none}
+    .pb-methods button{font-size:11px} .pb-sub .sb-seg.small button{padding:0 6px;font-size:12px}
+  }
+  @media (max-width:359px){ .pb-methods{gap:3px} .pb-methods button{font-size:10.5px} .sb-hist{width:84px} .sb-hist .sb-icon{width:42px;min-width:42px} }
+  @media (orientation:landscape) and (max-height:520px){
+    #strip-polygon{height:auto;padding:5px 8px}
+    #pb-tools{display:flex;flex-wrap:wrap;align-items:center;height:auto;gap:5px 8px}
+    #strip-polygon .sb-row1,#strip-polygon .pb-row2{display:contents}
+    #strip-polygon .sb-hist{order:1} #strip-polygon .ps-seg{order:2} #strip-polygon .grow{display:none}
+    #strip-polygon .pb-methods{order:3;flex:1 1 300px;margin:0}
+    #strip-polygon .pb-methods button{height:40px;min-height:40px;flex-direction:row;gap:4px;font-size:11px} #strip-polygon .pb-methods button br{display:none}
+    #strip-polygon .pb-methods button svg{width:20px;height:18px}
+    #strip-polygon .pb-info{order:4} #strip-polygon .pb-sub{order:5;flex:1 1 200px;height:40px} #strip-polygon .pb-count{order:6;width:auto}
+    #strip-polygon .pb-sk{order:7} #strip-polygon .pb-next{order:8}
+    .ph-row1{flex:1 1 auto;min-width:0} #strip-tess .ph-row1{flex:0 1 auto} .ph-row1 .seg.tools{flex:1 1 auto}   /* Illustrate and Tessellate stay one row, as in v5.9 */
+    .ph-row1 .sb-hist{order:0}                                         /* Undo / Redo first, at the panel's left, in landscape too */
+  }
+  /* ===== PH2 · My Gallery, Open, Backup / Restore (v5.11) ===== */
+  #gallery,#gbackup,#grestore{z-index:11}
+  .gbar{display:flex;align-items:center;gap:10px;margin-bottom:2px} .gbar h1{flex:1;min-width:0;margin:0}
+  .gseg{display:flex;border:1px solid var(--line);border-radius:12px;overflow:hidden;flex:none}
+  .gseg button{min-height:36px;border:0;border-radius:0;padding:0 12px;font-size:14px;background:var(--panel)}
+  .gseg button+button{border-left:1px solid var(--line)}
+  .gimport{display:flex;align-items:center;gap:12px;width:100%;max-width:520px;text-align:left;padding:10px 12px;border-radius:14px;margin:4px 0 14px;min-height:62px;border-color:#3a5078}
+  .gimport i{width:40px;height:40px;border-radius:10px;background:#22324d;display:flex;align-items:center;justify-content:center;flex:none;font-style:normal}
+  .gimport b{display:block;font-size:15px} .gimport small{display:block;font-size:12.5px;color:var(--mute)}
+  .ghead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 0 10px} .ghead h2{margin:0}
+  .gcard{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:7px;display:flex;flex-direction:column;gap:3px;min-width:0}
+  .gcard.linked{box-shadow:0 0 0 2px rgba(244,202,114,.65)}
+  .gcard .gopen{display:block;padding:0;border:0;min-height:0;background:#0d1422;border-radius:10px;overflow:hidden;width:100%}
+  .gcard img{display:block;width:100%;aspect-ratio:1/1;object-fit:cover}
+  .gcard b{display:block;font-size:14.5px;margin:4px 34px 0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .gcard span{display:block;font-size:12px;color:var(--mute);margin:0 38px 0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .gcard .gmore{position:absolute;right:4px;bottom:20px;width:40px;min-height:40px;height:40px;padding:0;border:0;border-radius:20px;background:transparent;font-size:17px;letter-spacing:1px;color:#c7d0e0}
+  .gcard .gmore:active{background:var(--panel2)}
+  .gempty{color:var(--mute);margin:24px 0;max-width:420px}
+  .gfoot{color:var(--mute);font-size:12.5px;line-height:1.45;margin:18px 0 0;max-width:560px} .gfoot b{color:#ffd28a;font-weight:600}
+  .gpop{position:absolute;z-index:3;display:flex;flex-direction:column;background:var(--panel2);border:1px solid #3a5078;border-radius:14px;padding:4px;box-shadow:0 10px 30px rgba(0,0,0,.6);width:190px}
+  .gpop[hidden]{display:none}
+  .gpop button{background:none;border:0;border-radius:10px;min-height:44px;text-align:left;padding:0 12px;font-size:15px}
+  .gpop button:active{background:rgba(255,255,255,.07)} .gpop button.danger{color:var(--bad)}
+  #gdlg{position:absolute;inset:0;z-index:22;display:flex;align-items:center;justify-content:center;background:rgba(5,9,16,.62);padding:20px} #gdlg[hidden]{display:none}
+  #gdlg .box{width:min(420px,100%);max-height:100%;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:18px 18px 14px;box-shadow:0 18px 48px rgba(0,0,0,.6)}
+  #gdlg h3{margin:0 0 10px;font-size:17px} #gdlg p{margin:0 0 10px;color:#c9d3e6;font-size:14px;line-height:1.45} #gdlg p.mute{color:var(--mute);font-size:13px}
+  #gdlg p.warn{color:#ffd28a}
+  #gdlg .acts{display:flex;flex-direction:column;gap:8px;margin-top:14px} #gdlg .acts button{width:100%}
+  #gdlg .acts .primary{background:var(--amber);color:#1a1200;border-color:transparent;font-weight:700}
+  #gdlg .acts .danger{background:#4a1f26;color:#ffb4b4;border-color:#7a3340;font-weight:700}
+  #gdlg .acts small{font-weight:400;opacity:.8;margin-left:6px}
+  #gdlg .link{background:none;border:0;color:#8fb3e8;min-height:40px;font-size:14px;width:100%;margin-top:4px}
+  .gprev{display:flex;gap:12px;align-items:center;margin:0 0 10px} .gprev img{width:96px;height:96px;border-radius:10px;flex:none;background:#0d1422;object-fit:cover}
+  .gprev div{font-size:13px;color:var(--mute);line-height:1.4;min-width:0} .gprev div b{display:block;color:var(--ink);font-size:14.5px;overflow:hidden;text-overflow:ellipsis}
+  .gname{display:block;font-size:12px;color:var(--mute);margin:6px 0 4px}
+  #gdlg input[type=text]{width:100%;min-height:46px;border-radius:10px;background:#0d1422;border:1.5px solid #4a6290;color:#fff;font:16px system-ui,-apple-system,sans-serif;padding:0 12px;-webkit-user-select:text;user-select:text}
+  .gsec{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:12px;max-width:560px;margin-bottom:6px}
+  .gsec p{margin:0 0 8px;font-size:13.5px;color:#c9d3e6;line-height:1.45} .gsec p.mute{color:var(--mute);font-size:12.5px}
+  .gsec .wide{width:100%} .gsec .primary{background:var(--amber);color:#1a1200;border-color:transparent;font-weight:700}
+  .gsec .primary:disabled{opacity:.5}
+  .gsec .note{margin:8px 0 0}
+  .grl{display:flex;flex-direction:column;gap:6px;max-width:560px}
+  .grr{display:flex;gap:10px;align-items:center;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:6px 8px}
+  .grr img{width:46px;height:46px;border-radius:7px;flex:none;background:#0d1422;object-fit:cover}
+  .grr .n{flex:1;min-width:0} .grr .n b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis} .grr .n span{font-size:11.5px;color:var(--mute)}
+  .grr.gbad img{opacity:.35}
+  .gchip{font-size:11px;font-weight:600;padding:3px 8px;border-radius:9px;white-space:nowrap;flex:none}
+  .gchip.new{background:#1d3b33;color:#8ff0c4} .gchip.same{background:#2a3446;color:#aab6cc} .gchip.diff{background:#3d3420;color:#f4ca72} .gchip.gbad{background:#3e2228;color:#ff9b9b}
+  .gacts{display:flex;gap:8px;margin-top:14px;max-width:560px} .gacts button{flex:1} .gacts .primary{flex:2;background:var(--amber);color:#1a1200;border-color:transparent;font-weight:700}
+  .card.resume span.gst{color:#ffd28a} .card.resume span.gst.gok{color:#9fe3bf}
 </style>
 </head>
 <body>
@@ -271,13 +419,17 @@
     <nav id="stagenav" class="stagenav" aria-label="Stage of making">
       <button id="mode-polygon" aria-pressed="false">Polygon</button><button id="mode-shape" aria-pressed="true">Shape</button><button id="mode-illustrate" aria-pressed="false">Illustrate</button><button id="mode-tess" aria-pressed="false">Tessellate</button>
     </nav>
-    <button id="more" class="round topside" aria-label="Menu" aria-expanded="false">⋮</button>
+    <button id="more" class="topside menubtn" aria-label="Menu" aria-expanded="false"><i class="ham" aria-hidden="true"></i></button>
   </header>
 
-  <button id="undo" class="fab" aria-label="Undo" disabled>↶</button>
-  <button id="redo" class="fab" aria-label="Redo" disabled>↷</button>
+  <button id="m-fit" class="fitfab" aria-label="Fit view" title="Fit view"><svg class="ic" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg></button>
   <div id="toast" role="status"></div>
   <button id="node-remove" hidden>Remove point</button>
+  <div id="fg-bar" hidden>
+    <div class="sb-seg small legacy" id="fg-mode" role="group" aria-label="One figure or two figures"><button id="fg-one" aria-pressed="true">One figure</button><button id="fg-two" aria-pressed="false">Two figures</button></div>
+    <span class="fg-share" id="fg-share" role="status" hidden>A 50% · B 50%</span>
+    <div class="sb-seg small fg-work" id="fg-work" role="group" aria-label="The figure you are working on" hidden><span class="fg-wl" aria-hidden="true">Working on</span><button id="fg-wa" aria-pressed="true" aria-label="Working on Figure A"><i class="fg-dot fa" aria-hidden="true"></i>A</button><button id="fg-wb" aria-pressed="false" aria-label="Working on Figure B"><i class="fg-dot fb" aria-hidden="true"></i>B</button></div>
+  </div>
   <div id="exp" hidden role="dialog" aria-modal="true" aria-labelledby="exp-title">
     <div class="box">
       <h3 id="exp-title">Save image</h3><p class="mute" id="exp-sub"></p>
@@ -320,29 +472,37 @@
          Row 2: the family's secondary choices (or a hint) · continue to Shape. -->
     <div id="strip-polygon" class="strip" aria-label="Polygon tools">
       <div id="pb-tools">
-        <div class="sb-row1">
-          <div class="sb-hist"><button id="pb-undo" class="sb-icon" aria-label="Undo" disabled>↶</button><button id="pb-redo" class="sb-icon gone" aria-label="Redo" disabled>↷</button></div>
-          <div class="sb-seg pb-fam" role="group" aria-label="Transformation"><button id="pf-translate" aria-pressed="false">Translate</button><button id="pf-rotate" aria-pressed="false">Rotate</button><button id="pf-glide" aria-pressed="false">Glide</button></div>
+        <div class="sb-row1 pb-row1">
+          <div class="sb-hist"><button id="pb-undo" class="sb-icon" aria-label="Undo" disabled><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4.5 4.5 9 9 13.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 9h9a5.5 5.5 0 0 1 0 11h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button><button id="pb-redo" class="sb-icon" aria-label="Redo" disabled><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 4.5 4.5 4.5-4.5 4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 9h-9a5.5 5.5 0 0 0 0 11h3.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button></div>
+          <div class="ps-seg" id="ps-shape" role="group" aria-label="Starting shape">
+            <button id="ps-tri" aria-pressed="false" aria-label="Tri: Triangle"><svg viewBox="0 0 18 16" aria-hidden="true"><path d="M9 1.5 17 14.5H1Z" fill="currentColor"/></svg><span>Tri</span></button><button id="ps-quad" aria-pressed="true" aria-label="Quad: Quadrilateral, starts as a square"><svg viewBox="0 0 16 16" aria-hidden="true"><rect x="1.5" y="1.5" width="13" height="13" fill="currentColor"/></svg><span>Quad</span></button><button id="ps-hex" aria-pressed="false" aria-disabled="true" aria-label="Hex: Hexagon, coming later"><svg viewBox="0 0 18 16" aria-hidden="true"><path d="M5 1h8l4.5 7-4.5 7H5L.5 8Z" fill="currentColor"/></svg><span>Hex</span><i class="later-dot" aria-hidden="true"></i></button>
+          </div>
+          <span class="grow"></span>
           <div class="pb-count" id="pb-count" aria-live="polite" hidden><b>0<small>/40</small></b><span>points</span></div>
+          <button id="pb-info" class="sb-icon pb-info" aria-label="How tiles repeat: Translate, Rotate, Glide reflection, Reflection, Figure and Ground">ⓘ</button>
+        </div>
+        <div class="pb-methods" role="group" aria-label="Construction method">
+          <button id="pf-translate" aria-pressed="false"><svg viewBox="0 0 24 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="1.5" y="5" width="9" height="9" rx="1"/><rect x="13.5" y="5" width="9" height="9" rx="1" stroke-dasharray="2.2 1.8"/><path d="M6 19h11m-2.5-2.5L17 19l-2.5 2.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Translate</span></button><button id="pf-rotate" aria-pressed="false"><svg viewBox="0 0 24 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M19.5 11A7.5 7.5 0 1 1 15 4.1"/><path d="M15 1v3.5h3.5"/><circle cx="12" cy="11" r="1.6" fill="currentColor" stroke="none"/></svg><span>Rotate</span></button><button id="pf-glide" aria-pressed="false"><svg viewBox="0 0 24 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M1 11h22" stroke-dasharray="2.4 2"/><path d="M3 9V3h6M3 6h4.5" stroke-linecap="round"/><path d="M14 13v6h6M14 16h4.5" stroke-linecap="round"/></svg><span>Glide<br>reflection</span></button><button id="pf-mirror" aria-pressed="false"><svg viewBox="0 0 24 22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><path d="M12 1v20" stroke-dasharray="2.4 2"/><path d="M9.5 5H5v12M5 10.5h3.5" stroke-linecap="round"/><path d="M14.5 5H19v12M19 10.5h-3.5" stroke-linecap="round"/></svg><span>Reflection</span></button><i class="pb-div" aria-hidden="true"></i><button id="pf-fg" class="fgm" aria-pressed="false" aria-label="Figure and Ground: two complementary figures"><svg viewBox="0 0 24 22" aria-hidden="true"><rect x="2" y="4" width="10" height="14" rx="1" fill="#f7f1e3" stroke="#1d1b18" stroke-width="1"/><rect x="12" y="4" width="10" height="14" rx="1" fill="#cf8a62" stroke="#1d1b18" stroke-width="1"/></svg><span>Figure &amp;<br>Ground</span></button>
         </div>
         <div class="sb-row2 pb-row2">
           <div class="pb-sub">
-            <span class="pb-hint" id="pb-hint">Choose how the tiles repeat</span>
-            <div class="sb-seg small" id="pb-sec-rotate" role="group" aria-label="Rotation centres" hidden><button data-id="rotation-sq-ac" aria-pressed="false" aria-label="Turn about the bottom-left and top-right corners">↗ corners</button><button data-id="rotation-sq-bd" aria-pressed="false" aria-label="Turn about the top-left and bottom-right corners">↖ corners</button></div>
-            <div class="sb-seg small" id="pb-sec-glide" role="group" aria-label="Glide reflection" hidden><button data-id="glide" aria-pressed="false">One way</button><button data-id="glide-both" aria-pressed="false">Both ways</button></div>
+            <span class="pb-hint" id="pb-hint">Choose a construction method</span>
+            <div class="sb-seg small" id="pb-sec-rotate" role="group" aria-label="Turning centres" hidden><button data-id="rotation-sq-ac" aria-pressed="false" aria-label="Rotate about the bottom-left and top-right corners">↗ corners</button><button data-id="rotation-sq-bd" aria-pressed="false" aria-label="Rotate about the top-left and bottom-right corners">↖ corners</button></div>
+            <div class="sb-seg small" id="pb-sec-glide" role="group" aria-label="Glide reflection: which pairs of sides" hidden><button data-id="glide" aria-pressed="false" aria-label="One pair: the top and bottom are glide-reflected; the left and right sides are translated"><svg class="mini" viewBox="0 0 18 18" aria-hidden="true"><rect x="3" y="3" width="12" height="12" fill="none" stroke="currentColor" stroke-opacity=".35" stroke-width="1.2"/><path d="M3 3h12M3 15h12" stroke="currentColor" stroke-width="2.6"/></svg>One pair</button><button data-id="glide-both" aria-pressed="false" aria-label="Both pairs: both pairs of opposite sides are glide-reflected"><svg class="mini" viewBox="0 0 18 18" aria-hidden="true"><path d="M3 3h12M3 15h12M3 3v12M15 3v12" stroke="currentColor" stroke-width="2.6" fill="none"/></svg>Both pairs</button></div>
+            <div class="sb-seg small" id="pb-sec-mirror" role="group" aria-label="How the neighbouring figures face" hidden><button data-id="mirror" aria-pressed="false" aria-label="Same: every neighbour keeps the same orientation (translation)"><svg class="mini wide" viewBox="0 0 38 16" aria-hidden="true"><path d="M7 1L14 8L7 15L0 8Z" fill="#9aa0a8" stroke="#1d1b18" stroke-width=".8"/><path d="M5.8 4.5v7M5.8 4.5h3M5.8 7.8h2.3" stroke="#1d1b18" stroke-width="1.1" fill="none" stroke-linecap="round"/><path d="M19 1L26 8L19 15L12 8Z" fill="#f7f1e3" stroke="#1d1b18" stroke-width=".8"/><path d="M17.8 4.5v7M17.8 4.5h3M17.8 7.8h2.3" stroke="#1d1b18" stroke-width="1.1" fill="none" stroke-linecap="round"/><path d="M31 1L38 8L31 15L24 8Z" fill="#9aa0a8" stroke="#1d1b18" stroke-width=".8"/><path d="M29.8 4.5v7M29.8 4.5h3M29.8 7.8h2.3" stroke="#1d1b18" stroke-width="1.1" fill="none" stroke-linecap="round"/></svg>Same</button><button data-id="mirror-flip" aria-pressed="false" aria-label="Mirrored: each neighbour across a side is mirrored (glide reflection)"><svg class="mini wide" viewBox="0 0 38 16" aria-hidden="true"><path d="M7 1L14 8L7 15L0 8Z" fill="#8fb3e8" stroke="#1d1b18" stroke-width=".8"/><path d="M8.2 4.5v7M8.2 4.5h-3M8.2 7.8h-2.3" stroke="#1d1b18" stroke-width="1.1" fill="none" stroke-linecap="round"/><path d="M19 1L26 8L19 15L12 8Z" fill="#f7f1e3" stroke="#1d1b18" stroke-width=".8"/><path d="M17.8 4.5v7M17.8 4.5h3M17.8 7.8h2.3" stroke="#1d1b18" stroke-width="1.1" fill="none" stroke-linecap="round"/><path d="M31 1L38 8L31 15L24 8Z" fill="#8fb3e8" stroke="#1d1b18" stroke-width=".8"/><path d="M32.2 4.5v7M32.2 4.5h-3M32.2 7.8h-2.3" stroke="#1d1b18" stroke-width="1.1" fill="none" stroke-linecap="round"/></svg>Mirrored</button></div>
+            <div class="sb-seg small" id="pb-sec-fg" role="group" aria-label="Figure and Ground: how the units repeat" hidden><button data-id="fg-slide" aria-pressed="false" aria-label="Translate: Figure A and Figure B side by side"><svg class="mini" viewBox="0 0 22 14" aria-hidden="true"><rect x="1" y="1" width="10" height="12" fill="#f7f1e3"/><rect x="11" y="1" width="10" height="12" fill="#cf8a62"/></svg>Translate</button><button data-id="fg-mirror" aria-pressed="false" aria-label="Reflection: Figure A below Figure B, each symmetric about one mirror line"><svg class="mini" viewBox="0 0 16 16" aria-hidden="true"><rect x="2" y="1" width="12" height="7" fill="#cf8a62"/><rect x="2" y="8" width="12" height="7" fill="#f7f1e3"/><path d="M8 0v16" stroke="#e58bb0" stroke-width="1.4" stroke-dasharray="2 1.5"/></svg>Reflection</button></div>
           </div>
           <button id="pb-sketch" class="pb-sk" aria-pressed="false" disabled>Sketch</button>
           <button id="pb-next" class="pb-next" disabled>Shape ›</button>
         </div>
       </div>
     </div>
-
     <!-- SHAPE: one floating bar of FIXED height. Row 2 holds Point–Wide (Pull) or Pen/Eraser + size (Sketch) in the same box,
          so switching tools never moves anything. Reference editing swaps the whole bar for  ⋯ | Opacity | Lock. -->
     <div id="strip-shape" class="strip on" aria-label="Shape tools">
       <div id="sb-tools">
         <div class="sb-row1">
-          <div class="sb-hist"><button id="sb-undo" class="sb-icon" aria-label="Undo" disabled>↶</button><button id="sb-redo" class="sb-icon gone" aria-label="Redo" disabled>↷</button></div>
+          <div class="sb-hist"><button id="sb-undo" class="sb-icon" aria-label="Undo" disabled><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4.5 4.5 9 9 13.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 9h9a5.5 5.5 0 0 1 0 11h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button><button id="sb-redo" class="sb-icon" aria-label="Redo" disabled><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 4.5 4.5 4.5-4.5 4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 9h-9a5.5 5.5 0 0 0 0 11h3.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button></div>
           <div class="sb-seg sb-main" role="group" aria-label="Shape tool"><button id="st-pull" aria-pressed="true">Pull</button><button id="st-sketch" aria-pressed="false">Sketch</button></div>
           <button id="ref-btn" class="sb-text" aria-pressed="false" aria-expanded="false" title="Add a reference image">Ref</button>
         </div>
@@ -363,15 +523,17 @@
 
     <!-- ILLUSTRATE: pen, eraser, fill, dots, texture -->
     <div id="strip-illustrate" class="strip">
+      <div class="ph-row1"><div class="sb-hist" id="hist-il"><button id="undo" class="sb-icon" aria-label="Undo" disabled><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4.5 4.5 9 9 13.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 9h9a5.5 5.5 0 0 1 0 11h-3.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button><button id="redo" class="sb-icon" aria-label="Redo" disabled><svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><path d="m15 4.5 4.5 4.5-4.5 4.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><path d="M19 9h-9a5.5 5.5 0 0 0 0 11h3.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button></div>
       <div class="seg tools" role="group" aria-label="Illustration tool">
         <button id="t-pen" aria-pressed="true">Pen</button><button id="t-eraser" aria-pressed="false">Eraser</button><button id="t-fill" aria-pressed="false">Fill</button><button id="t-dot" aria-pressed="false">Dots</button><button id="t-texture" aria-pressed="false">Texture</button>
-      </div>
+      </div></div>
       <div class="row2">
         <canvas id="prevc" width="44" height="44" class="prevc" aria-label="Preview"></canvas>
         <label class="sl" id="sl-size"><span id="lab-size">Size</span><input id="size-il" type="range" min="0" max="1" step="0.01" value="0.3"></label>
         <label class="sl" id="sl-angle" hidden><span>Angle</span><input id="angle-il" type="range" min="0" max="180" step="1" value="45"></label>
         <label class="sl" id="sl-opac"><span>Opacity</span><input id="opac-il" type="range" min="0.05" max="1" step="0.01" value="1"></label>
         <button id="colour-btn" class="colbtn" aria-label="Colour" aria-expanded="false"><i id="colour-dot"></i></button>
+        <button id="t-mirror" class="colbtn mirbtn" aria-pressed="false" aria-label="Mirrored drawing" hidden><svg viewBox="0 0 26 26" aria-hidden="true"><path d="M13 3v20" stroke="currentColor" stroke-width="1.6" stroke-dasharray="2.5 2.5"/><path d="M10 7L3 19h7z" fill="currentColor"/><path d="M16 7l7 12h-7z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></button>
       </div>
       <div class="seg patterns" id="seg-pattern" role="group" aria-label="Texture pattern" hidden>
         <button data-p="hatch" aria-pressed="true">Hatch</button><button data-p="cross" aria-pressed="false">Cross</button><button data-p="stipple" aria-pressed="false">Stipple</button><button data-p="scales" aria-pressed="false">Scales</button><button data-p="waves" aria-pressed="false">Waves</button>
@@ -380,45 +542,65 @@
 
     <!-- TESSELLATE: colour treatment -->
     <div id="strip-tess" class="strip">
+      <div class="ph-row1"><div class="sb-hist" id="hist-ts"></div>
       <div class="seg" role="group" aria-label="Colour treatment">
         <button id="tr-same" aria-pressed="true">Same</button><button id="tr-alt" aria-pressed="false">Alternate</button><button id="tr-row" aria-pressed="false">Row</button><button id="tr-col" aria-pressed="false">Column</button>
-      </div>
+      </div></div>
       <label class="sl outl"><span>Outline</span><input id="outline" type="range" min="0" max="1" step="0.01" value="0.428" aria-label="Outline width"></label>
     </div>
 
   </footer>
 
   <div id="scrim" hidden></div>
-  <div id="menu" hidden role="menu">
-    <div class="label" id="menu-title"></div>
-    <button class="item" id="m-new">New <span class="mute">choose shape…</span></button>
-    <button class="item" id="m-image"><span>Save image…</span><span class="mute">PNG · SVG</span></button>
-    <button class="item" id="m-save"><span>Save project</span><span class="mute">file…</span></button>
-    <button class="item" id="m-open"><span>Open project…</span></button>
-    <div class="label keep" id="m-keep">Kept on this device automatically</div>
-    <hr>
-    <button class="item" id="m-start"><span>Show starting shape</span><span id="m-start-tick" class="mute">off</span></button>
-    <div class="label">Neighbours</div>
-    <div class="seg" role="group" aria-label="Neighbours">
+  <div id="menu" hidden role="menu" aria-label="Menu">
+    <div class="mpage" id="menu-main">
+      <div class="label" id="menu-title"></div>
+      <div class="label keep" id="m-keep">Kept on this device automatically</div>
+      <div class="label keep" id="m-gstat" hidden></div>
+      <hr>
+      <button class="item" id="m-new"><span>New…</span><span class="mute">choose a starting shape</span></button>
+      <button class="item" id="m-restore" hidden><span>Restore previous version</span><span class="mute" id="m-restore-sub"></span></button>
+      <hr>
+      <button class="item" id="m-gallery"><span>My Gallery</span><span class="mute" id="m-gallery-n"></span></button>
+      <button class="item" id="m-save"><span>Save to Gallery</span><span class="mute">›</span></button>
+      <button class="item" id="m-open"><span>Open…</span><span class="mute">Gallery · file</span></button>
+      <button class="item" id="m-backup"><span>Backup / Restore</span><span class="mute">›</span></button>
+      <button class="item" id="m-image"><span>Export…</span><span class="mute">PNG · SVG</span></button>
+      <button class="item later" id="m-test" aria-disabled="true"><span>Test mode</span><span class="soon">Coming later</span></button>
+      <hr>
+      <button class="item" id="m-settings"><span>Construction settings</span><span class="mute">›</span></button>
+      <button class="item" id="m-help"><span>Help / About</span><span class="mute">›</span></button>
+    </div>
+    <div class="mpage" id="menu-settings" hidden>
+      <button class="item back" id="m-back-s"><span>‹ Menu</span></button>
+      <div class="label sec">View</div>
+      <div class="label">Neighbours</div>
+      <div class="seg" role="group" aria-label="Neighbours">
       <button id="g-off" aria-pressed="false">Off</button><button id="g-ghost" aria-pressed="true">Ghost</button><button id="g-clear" aria-pressed="false">Clear</button>
     </div>
-    <button class="item" id="m-sketch" hidden><span>Show sketch</span><span id="m-sketch-tick" class="mute">off</span></button>
-    <button class="item" id="m-resetcomp">Reset composition</button>
-    <button class="item" id="m-fit">Fit view</button>
-    <button class="item" id="m-reset">Reset Shape</button>
-    <button class="item" id="m-restore" hidden><span>Restore previous version</span><span class="mute" id="m-restore-sub"></span></button>
-    <hr>
-    <button class="item" id="m-exp"><span>Experimental</span><span class="mute" id="m-exp-tick">›</span></button>
-    <div id="m-exp-list" hidden>
+      <button class="item" id="m-start"><span>Show starting shape</span><span id="m-start-tick" class="mute">off</span></button>
+      <button class="item" id="m-sketch" hidden><span>Show sketch</span><span id="m-sketch-tick" class="mute">off</span></button>
+      <hr>
+      <div class="label sec">Reset</div>
+      <button class="item" id="m-reset">Reset Shape</button>
+      <button class="item" id="m-resetcomp"><span>Reset composition</span><span class="mute">Tessellate colours</span></button>
+      <hr>
+      <div class="label sec">Advanced</div>
+      <button class="item" id="m-exp"><span>Experimental</span><span class="mute" id="m-exp-tick">›</span></button>
+      <div id="m-exp-list" hidden>
       <button class="item sub" id="m-exp-grid"><span>Grid Explorer</span><span class="mute">new tab</span></button>
       <button class="item sub" id="m-exp-regular"><span>Regular Grid Explorer</span><span class="mute">new tab</span></button>
       <button class="item sub" id="m-exp-rhombus"><span>Rhombus · mirror diamond</span></button>
     </div>
-    <button class="item" id="m-lab">Geometry Lab <span class="mute">›</span></button>
-    <hr>
-    <button class="item" id="m-about">About</button>
+      <button class="item" id="m-lab">Geometry Lab <span class="mute">›</span></button>
+    </div>
+    <div class="mpage" id="menu-help" hidden>
+      <button class="item back" id="m-back-h"><span>‹ Menu</span></button>
+      <button class="item" id="m-rules"><span>How tiles repeat</span><span class="mute">›</span></button>
+      <button class="item" id="m-about"><span>About</span><span class="mute">›</span></button>
+      <div class="label" id="m-version"></div>
+    </div>
   </div>
-
   <section id="entry" class="sheet">
     <div class="bar"><button id="entry-back" class="round" aria-label="Back" hidden>‹</button><h1 id="entry-title">Choose a starting shape</h1></div>
     <p class="sub" id="entry-sub">Everything you draw will repeat across the plane.</p>
@@ -458,17 +640,67 @@
   <section id="about" class="sheet" hidden>
     <div class="bar"><button id="about-back" class="round" aria-label="Back">‹</button><h1>About</h1></div>
     <p><b>Tessellation</b>: develop a figure that repeats across the plane, in four stages.</p>
-    <p><b>Polygon</b> · choose how the tiles repeat, move corners and add points on the sides (up to 40). Every change is copied to the matching side, so the tile always fits its neighbours.<br>
+    <p><b>Polygon</b> · choose a starting shape (<b>Tri</b> triangle, <b>Quad</b> quadrilateral, starting as a square; <b>Hex</b> hexagon comes later) and a construction method: <b>Translate</b>, <b>Rotate</b>, <b>Glide reflection</b>, <b>Reflection</b>, or <b>Figure &amp; Ground</b> (two complementary figures). On Quad, move corners and add points on the sides (up to 40). Every change is copied to the matching side, so the tile always fits its neighbours. <a href="#" id="about-rules">How tiles repeat ›</a><br>
        <b>Shape</b> · pull the sides into curves; sketch your idea.<br>
-       <b>Illustrate</b> · draw, fill, add dots and textures.<br>
+       <b>Illustrate</b> · draw, fill, add dots and textures; with Reflection, draw symmetrically if you like.<br>
        <b>Tessellate</b> · see the pattern, colour groups of tiles, set the outline.</p>
-    <p><b>Your work</b> is kept on this device automatically (⋮ menu). <b>Save project</b> makes a file you can keep, move to another device or hand in; <b>Open project…</b> brings it back. <b>Save image…</b> makes a picture (PNG or SVG).</p>
-    <p class="mute">Two fingers move and zoom. Work kept in Safari and in a Home Screen copy of the app are kept separately: use Save project to move work between them. Classroom release v5.4 (CR3).</p>
+    <p><b>Unfinished work</b> is kept on this device automatically, one piece at a time: the start screen offers to <b>Continue</b> it. <b>Save to Gallery</b> keeps a project in <b>My Gallery</b> (only what you save yourself), with a picture of its tile and its pattern. <b>Open…</b> shows the same Gallery and can <b>import a project file</b>; <b>Save as file…</b> makes a file you can move to another device or hand in. <b>Backup / Restore</b> saves the whole Gallery in one file and brings it back. <b>Export…</b> makes a picture (PNG or SVG). Test mode comes in a later version.</p>
+    <p class="mute">Two fingers move and zoom. Work kept in Safari and in a Home Screen copy of the app are kept separately: use Save as file or a Gallery backup to move work between them. Version v5.11 (Phase 2): My Gallery, Open and Import, Backup / Restore. Earlier: v5.10 (Phase 1): starting shapes Tri · Quad · Hex, the construction methods Translate · Rotate · Glide reflection · Reflection · Figure &amp; Ground, Undo and Redo together in every stage, and a simpler menu. Earlier: v5.9 Figure &amp; Ground · Reflection and per-figure colours; v5.8 Figure &amp; Ground; v5.7 the two Reflection arrangements; v5.6 Reflection.</p>
   </section>
+
+  <!-- T1: the four rules, with their mathematical names (opened from ⓘ in the Polygon bar and from About) -->
+  <section id="rules" class="sheet" hidden>
+    <div class="bar"><button id="rules-back" class="round" aria-label="Back">‹</button><h1>How tiles repeat</h1></div>
+    <p class="sub">Every rule copies the changes you make on one side to another side, so the tiles always fit together.</p>
+    <div id="rules-body"></div>
+  </section>
+
+  <!-- PH2: My Gallery and Open are ONE sheet over one collection (Open adds Import project file…) -->
+  <section id="gallery" class="sheet" hidden aria-labelledby="gal-title">
+    <div class="gbar"><button id="gal-back" class="round" aria-label="Close">✕</button><h1 id="gal-title">My Gallery</h1></div>
+    <p class="sub" id="gal-sub"></p>
+    <button id="gal-import" class="gimport" hidden><i aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#e8edf6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5M12 18v-6M9 15l3 3 3-3"/></svg></i><span><b>Import project file…</b><small>from Files or Downloads · opens it for editing</small></span></button>
+    <div class="ghead"><h2 id="gal-count">My Gallery</h2><div class="gseg" role="group" aria-label="Pictures"><button id="gal-v-tile" aria-pressed="true">Tile</button><button id="gal-v-pattern" aria-pressed="false">Pattern</button></div></div>
+    <p class="note" id="gal-note" hidden></p>
+    <div class="grid" id="gal-grid"></div>
+    <p class="gempty" id="gal-empty" hidden>Nothing saved yet. ☰ › <b>Save to Gallery</b> keeps the tessellation you are working on.</p>
+    <p class="gfoot" id="gal-foot"></p>
+    <div id="gpop" class="gpop" hidden role="menu"><button data-act="rename">Rename…</button><button data-act="duplicate">Duplicate</button><button data-act="file">Save as file…</button><button data-act="delete" class="danger">Delete…</button></div>
+  </section>
+
+  <!-- PH2: Backup / Restore -->
+  <section id="gbackup" class="sheet" hidden aria-labelledby="gb-title">
+    <div class="gbar"><button id="gb-back" class="round" aria-label="Close">✕</button><h1 id="gb-title">Backup / Restore</h1></div>
+    <h2>Back up</h2>
+    <div class="gsec"><p id="gb-what"></p>
+      <p class="mute">One file with every project saved in My Gallery, complete and editable: shape, construction, drawing, fills, figure colours and reference photo. Save it to Files or Downloads.</p>
+      <p class="mute"><b>Unfinished work that is only kept automatically is not included</b>, only projects saved to My Gallery.</p>
+      <button id="gb-save" class="primary wide" disabled>Preparing…</button>
+      <p class="note" id="gb-note" hidden></p></div>
+    <h2>Restore</h2>
+    <div class="gsec"><p class="mute">Adds the projects from a backup file to My Gallery. You see them first. Nothing in My Gallery is replaced unless you choose to and confirm.</p>
+      <button id="gb-restore" class="wide">Restore from backup…</button></div>
+    <p class="gfoot">Each web address keeps its own Gallery. A backup moves projects between devices, addresses and app versions.</p>
+  </section>
+
+  <!-- PH2: the Restore preview -->
+  <section id="grestore" class="sheet" hidden aria-labelledby="gr-title">
+    <div class="gbar"><button id="gr-back" class="round" aria-label="Cancel">✕</button><h1 id="gr-title">Restore from backup</h1></div>
+    <p class="sub" id="gr-sub"></p>
+    <div class="grl" id="gr-list"></div>
+    <div id="gr-conf" hidden><h2 id="gr-conf-t">Different versions</h2>
+      <div class="gseg" role="group" aria-label="When a project differs from yours"><button id="gr-c-both" aria-pressed="true">Keep both</button><button id="gr-c-skip" aria-pressed="false">Skip</button><button id="gr-c-replace" aria-pressed="false">Replace mine…</button></div>
+      <p class="gfoot" id="gr-conf-note" style="margin-top:8px"></p></div>
+    <div class="gacts"><button id="gr-cancel">Cancel</button><button id="gr-go" class="primary">Restore</button></div>
+  </section>
+
+  <div id="gdlg" hidden role="dialog" aria-modal="true" aria-labelledby="gdlg-title"><div class="box"><h3 id="gdlg-title"></h3><div id="gdlg-body"></div><div class="acts" id="gdlg-acts"></div></div></div>
+  <input id="gbfile" type="file" accept=".json,application/json" hidden>
 </div>
-<script src="engine.js"></script>
-<script src="tiling-check.js"></script>
-<script src="project.js"></script>
-<script src="app.js"></script>
+<script src="engine.js?v=5.11"></script>
+<script src="tiling-check.js?v=5.11"></script>
+<script src="project.js?v=5.11"></script>
+<script src="gallery.js?v=5.11"></script>
+<script src="app.js?v=5.11"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-/* tessellation-mobile-workspace-v5.2-classroom / project.js  (CR1: keep the work)
+/* tessellation-mobile-workspace-v5.2-classroom / project.js  (CR1: keep the work; format 5 since v5.8-f1a1)
  * The PROJECT FORMAT, the project FILE (Save project / Open project…) and the automatic save on this device (IndexedDB).
  * It knows nothing about drawing or geometry: app.js builds a project object from its own state and restores it with its own functions.
  * The format is described in CR1_PROJECT_FORMAT.md.
@@ -12,7 +12,7 @@
  */
 (() => {
 'use strict';
-const FORMAT = 'tessellation-project', VERSION = 2;          // 2 (CR3): up to 40 points, Polygon sketches with one Undo timeline, the process recording
+const FORMAT = 'tessellation-project', VERSION = 7;          // 2 (CR3): up to 40 points, Polygon sketches with one Undo timeline, the process recording; 3 (T1): the Mirror rule, mirrored drawing; 4 (T2): Mirror's Alternating arrangement; 5 (F1a-1): Two figures; 6 (F1r): Two figures' corners move, fills belong to a figure; 7 (F1a-2): Mirror · Two figures, Tessellate colours per figure, a new construction keeps the previous one
 
 /* ---------------- typed arrays <-> base64 (exact) ---------------- */
 const LE = new Uint8Array(new Uint16Array([1]).buffer)[0] === 1;
@@ -42,8 +42,23 @@ function fromFileText(text) {
 /* ---------------- reading a file: is it a project, and can this version open it? ---------------- */
 // Each later format version adds a step here that turns version n into n + 1, so every older file keeps opening.
 const UPGRADE = {
-  1: p => Object.assign({}, p, { version: 2 })   // version 1 → 2: nothing to convert (version 2 only adds optional parts)
-};
+  1: p => Object.assign({}, p, { version: 2 }),  // version 1 → 2: nothing to convert (version 2 only adds optional parts)
+  2: p => Object.assign({}, p, { version: 3 }),  // version 2 → 3: nothing to convert (version 3 adds the Mirror rule and mirrored strokes/fills; an
+                                                 //   older app refuses a version-3 file as "newer", rather than drawing mirrored strokes un-mirrored)
+  3: p => Object.assign({}, p, { version: 4 }),  // version 3 → 4: nothing to convert (version 4 adds Mirror's Alternating arrangement, the
+                                                 //   construction 'mirror-flip'; v5.6 refuses a version-4 file rather than show it as Same orientation)
+  4: p => Object.assign({}, p, { version: 5 }),  // version 4 → 5: nothing to convert (version 5 adds Two figures: a two-figure unit, 'fg-slide', whose
+                                                 //   boundaries have a seventh side, the side between Figure A and Figure B; v5.7.1 refuses a version-5 file)
+  5: p => Object.assign({}, p, { version: 6 }),  // version 5 → 6: nothing to convert (version 6 lets Two figures' six corners move and gives a fill its
+                                                 //   figure, 'A' or 'B'; v5.8 refuses a version-6 file rather than show moved corners as an error)
+  6: p => {                                      // version 6 → 7 (F1a-2): Tessellate colours belong to a FIGURE. A two-figure project of version 6 kept its
+    const g = p.geometry, two = !!g && !!g.unit && g.unit.tiles === 2, cp = p.composition;   //   group colours on the figure then emphasised; they move to that figure
+    if (!two || !cp || typeof cp.groups !== 'object' || !cp.groups) return Object.assign({}, p, { version: 7 });   //   ('A:' or 'B:' keys), so the project looks the same
+    const f = p.view && p.view.figureFocus === 'B' ? 'B' : 'A', groups = {};
+    Object.keys(cp.groups).forEach(m => { const src = cp.groups[m]; if (!src || typeof src !== 'object') return; groups[m] = {}; Object.keys(src).forEach(k => { groups[m][/^[AB]:/.test(k) ? k : f + ':' + k] = src[k]; }); });
+    return Object.assign({}, p, { version: 7, composition: Object.assign({}, cp, { groups }) });
+  }
+};                                               //   v5.8.1 refuses a version-7 file rather than show Mirror · Two figures or the figure colours wrongly
 function readProject(text) {      // → { project } or { problem: a sentence for the student }
   let p;
   try { p = fromFileText(text); } catch (_) { return { problem: 'This file is not a tessellation project, or it is damaged.' }; }

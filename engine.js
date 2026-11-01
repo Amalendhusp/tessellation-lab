@@ -9,6 +9,7 @@
  *   - cull factor parameter (baseline value 3.6 kept as default below)
  *   - buildTiling() wrapper preserves baseline behaviour
  * Everything else is byte-for-byte baseline source.
+ * v5.5-fx: makeTiling de-duplicates tiles with a tolerance instead of rounding (FX-1; see FX_REPORT.md). Nothing else changed.
  */
 (function (root) {
 'use strict';
@@ -218,13 +219,23 @@ function makeTiling(cullFactor) {
   const size = Math.max(Math.max(...xs)-Math.min(...xs), Math.max(...ys)-Math.min(...ys));
   const gens = [];
   rels.forEach(r => { if (r.role !== 'glue') return; gens.push(r.m); if (r.self === undefined) gens.push(r.inv); });
-  const key = m => { const p = mapp(m, c0); return Math.round(p.x*1000) + ',' + Math.round(p.y*1000); };
-  const seen = new Set([key(IDM)]), list = [IDM], queue = [IDM], cull = cullFactor*size;
+  // FX-1 (v5.5): a placement is a duplicate when its centre lies within 1e-6 cell sizes of one already found. Points are kept in a spatial
+  // hash (cells of 1/1000 of the cell size) and compared with the 3x3 neighbouring cells, so a centre that lands exactly on a rounding
+  // boundary can no longer split one tile into two (it did with Math.round(1000 * coordinate): e.g. a centre at y = 0.4375).
+  // (a neighbouring cell is searched only when the point lies within the tolerance of that cell's border: TOL is far smaller than a cell)
+  const H = 1e-3*size, TOL = 1e-6*size, t = TOL/H, cells = new Map(), cellKey = (i, j) => (i + 32768)*65536 + (j + 32768);
+  const near = (l, p) => !!l && l.some(q => Math.hypot(q.x-p.x, q.y-p.y) < TOL);
+  const seen = p => { const fx = p.x/H, fy = p.y/H, i = Math.floor(fx), j = Math.floor(fy); if (near(cells.get(cellKey(i, j)), p)) return true;
+    const di = fx - i < t ? -1 : fx - i > 1 - t ? 1 : 0, dj = fy - j < t ? -1 : fy - j > 1 - t ? 1 : 0;
+    return (di !== 0 && near(cells.get(cellKey(i+di, j)), p)) || (dj !== 0 && near(cells.get(cellKey(i, j+dj)), p)) || (di !== 0 && dj !== 0 && near(cells.get(cellKey(i+di, j+dj)), p)); };
+  const keep = p => { const k = cellKey(Math.floor(p.x/H), Math.floor(p.y/H)); if (!cells.has(k)) cells.set(k, []); cells.get(k).push(p); };
+  keep(mapp(IDM, c0));
+  const list = [IDM], queue = [IDM], cull = cullFactor*size;
   while (queue.length && list.length < 700) {
     const m = queue.shift();
-    gens.forEach(g => { const nm = mmul(m, g), k = key(nm), p = mapp(nm, c0);
-      if (seen.has(k) || Math.hypot(p.x-c0.x, p.y-c0.y) > cull) return;
-      seen.add(k); list.push(nm); queue.push(nm); });
+    gens.forEach(g => { const nm = mmul(m, g), p = mapp(nm, c0);
+      if (seen(p) || Math.hypot(p.x-c0.x, p.y-c0.y) > cull) return;
+      keep(p); list.push(nm); queue.push(nm); });
   }
   return { list, c0, size, gens };
 }
